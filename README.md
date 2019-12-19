@@ -23,3 +23,11 @@ Cada evento conterá um campo dizendo a qual namespace asgard (Account) aquela t
 
 Aqui teremos tudo sobre os agentes (servidres) que fazem parte do cluster. Cada evento também conterá o namespace que esse agente pertence.
 Teremos eventos de Agent adicionado e Agent removido.
+
+
+
+# Configurações
+
+## ENV Vars
+
+ - `INDEXER_MESOS_MASTER_URLS`: Lista de endereços dos nós do cluster de mesos;
