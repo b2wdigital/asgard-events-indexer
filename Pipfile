@@ -19,6 +19,7 @@ lxml = "==4.4.1"
 asgard-events-indexer = {editable = true,path = "."}
 ipython = "*"
 ipdb = "*"
+aioresponses = "==0.6.1"
 
 [requires]
 python_version = "3.7"
