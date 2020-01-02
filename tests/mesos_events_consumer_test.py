@@ -4,14 +4,18 @@ from aiohttp.web import StreamResponse, Request
 from asynctest import skip
 from asyncworker import App, RouteTypes
 from asyncworker.testing import HttpClientContext
+from pydantic import BaseModel
+from tests.base import BaseTestCase
 
 from indexer.conf import settings
+from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import EventConsumer
-from tests.base import BaseTestCase
 
 
 class MyEventConsumer(EventConsumer):
-    chunks: List[bytes] = []
+    def __init__(self, conn, *args, **kwargs) -> None:
+        EventConsumer.__init__(self, conn, *args, **kwargs)
+        self.chunks: List[bytes] = []
 
     async def on_chunk(self, chunk):
         self.chunks.append(chunk)
@@ -37,11 +41,10 @@ class MesosConsumerTest(BaseTestCase):
 
         async with HttpClientContext(self.app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
-            settings.MESOS_MASTER_URLS = [url]
-            consumer = MyEventConsumer()
+            consumer = MyEventConsumer(HTTPConnection(urls=[url]))
             print(consumer.chunks)
 
-            await consumer.startup()
+            await consumer.consume()
 
             self.assertEqual([b"OK", b"OK_Again"], consumer.chunks)
 
@@ -62,9 +65,8 @@ class MesosConsumerTest(BaseTestCase):
 
         async with HttpClientContext(app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
-            settings.MESOS_MASTER_URLS = [url]
-            consumer = MyEventConsumer()
-            await consumer.startup()
+            consumer = MyEventConsumer(HTTPConnection(urls=[url]))
+            await consumer.consume()
 
             self.assertEqual([b'{"type": "SUBSCRIBE"}'], consumer.chunks)
 

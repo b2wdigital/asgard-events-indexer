@@ -1,15 +1,18 @@
 from typing import List
 
 from aiohttp import ClientSession
-from pydantic import BaseModel
 
 from indexer.conf import settings
+from indexer.consumer import Consumer
 
 
-class EventConsumer(BaseModel):
-    async def startup(self):
+class EventConsumer(Consumer):
+    def __init__(self, conn, *args, **kwargs) -> None:
+        Consumer.__init__(self, conn, *args, **kwargs)
+
+    async def consume(self):
         client = ClientSession()
-        for url in settings.MESOS_MASTER_URLS:
+        for url in self.conn.urls:
             resp = await client.post(
                 f"{url}/api/v1", json={"type": "SUBSCRIBE"}
             )
