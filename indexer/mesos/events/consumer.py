@@ -3,7 +3,7 @@ from aiohttp import ClientSession
 from indexer.consumer import Consumer
 
 
-class EventConsumer(Consumer):
+class MesosEventConsumer(Consumer):
     def __init__(self, conn, *args, **kwargs) -> None:
         Consumer.__init__(self, conn, *args, **kwargs)
 

@@ -7,12 +7,7 @@ from asyncworker.testing import HttpClientContext
 from tests.base import BaseTestCase
 
 from indexer.connection import HTTPConnection
-from indexer.mesos.events.consumer import EventConsumer
-
-
-class MyEventConsumer(EventConsumer):
-    def __init__(self, conn, *args, **kwargs) -> None:
-        EventConsumer.__init__(self, conn, *args, **kwargs)
+from indexer.mesos.events.consumer import MesosEventConsumer
 
 
 class MesosConsumerTest(BaseTestCase):
@@ -35,7 +30,7 @@ class MesosConsumerTest(BaseTestCase):
 
         async with HttpClientContext(self.app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
-            consumer = MyEventConsumer(HTTPConnection(urls=[url]))
+            consumer = MesosEventConsumer(HTTPConnection(urls=[url]))
 
             await consumer.connect()
             chunks = list([c async for c in consumer.events()])
@@ -59,7 +54,7 @@ class MesosConsumerTest(BaseTestCase):
 
         async with HttpClientContext(app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
-            consumer = MyEventConsumer(HTTPConnection(urls=[url]))
+            consumer = MesosEventConsumer(HTTPConnection(urls=[url]))
             await consumer.connect()
 
             chunks = list([x async for x in consumer.events()])
