@@ -4,10 +4,8 @@ from aiohttp.web import StreamResponse, Request
 from asynctest import skip
 from asyncworker import App, RouteTypes
 from asyncworker.testing import HttpClientContext
-from pydantic import BaseModel
 from tests.base import BaseTestCase
 
-from indexer.conf import settings
 from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import EventConsumer
 
@@ -15,10 +13,6 @@ from indexer.mesos.events.consumer import EventConsumer
 class MyEventConsumer(EventConsumer):
     def __init__(self, conn, *args, **kwargs) -> None:
         EventConsumer.__init__(self, conn, *args, **kwargs)
-        self.chunks: List[bytes] = []
-
-    async def on_chunk(self, chunk):
-        self.chunks.append(chunk)
 
 
 class MesosConsumerTest(BaseTestCase):
@@ -42,11 +36,11 @@ class MesosConsumerTest(BaseTestCase):
         async with HttpClientContext(self.app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
             consumer = MyEventConsumer(HTTPConnection(urls=[url]))
-            print(consumer.chunks)
 
-            await consumer.consume()
+            await consumer.connect()
+            chunks = list([c async for c in consumer.events()])
 
-            self.assertEqual([b"OK", b"OK_Again"], consumer.chunks)
+            self.assertEqual([b"OK", b"OK_Again"], chunks)
 
     async def test_calls_api_v1_with_correct_payload(self):
         """
@@ -66,9 +60,11 @@ class MesosConsumerTest(BaseTestCase):
         async with HttpClientContext(app) as client:
             url = f"http://{client._server.host}:{client._server.port}"
             consumer = MyEventConsumer(HTTPConnection(urls=[url]))
-            await consumer.consume()
+            await consumer.connect()
 
-            self.assertEqual([b'{"type": "SUBSCRIBE"}'], consumer.chunks)
+            chunks = list([x async for x in consumer.events()])
+
+            self.assertEqual([b'{"type": "SUBSCRIBE"}'], chunks)
 
     @skip("to be implemented")
     async def test_reconnect_if_exception_on_current_connection(self):
