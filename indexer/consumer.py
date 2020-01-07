@@ -1,3 +1,4 @@
+import asyncio
 from abc import abstractmethod, ABC
 from typing import AsyncGenerator, List
 
@@ -30,7 +31,6 @@ class Consumer(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     async def write_output(self, events: List[Event]) -> None:
         raise NotImplementedError
 
@@ -49,7 +49,7 @@ class Consumer(ABC):
                 await self.connect()
                 async for event in self.events():
                     await self.write_output([event])
-            except ClientError as e:
+            except (ClientError, asyncio.TimeoutError) as e:
                 await logger.exception(
                     {"event": "exception-consuming-events", "exc": str(e)}
                 )

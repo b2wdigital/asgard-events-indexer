@@ -1,3 +1,4 @@
+from asyncio import TimeoutError
 from typing import List
 
 from aiohttp import ClientError
@@ -32,10 +33,25 @@ class EventConsumerTest(BaseTestCase):
 
         consumer = MyConsumer(HTTPConnection(urls=["http://127.0.0.1:5050"]))
         with mock.patch.object(
-            consumer, "connect", CoroutineMock()
-        ) as connect_mock, mock.patch.object(
+            consumer, "events", side_effect=ClientError()
+        ), mock.patch.object(
             consumer, "should_run", side_effect=[True, True, False]
-        ):
+        ), mock.patch.object(
+            consumer, "connect", CoroutineMock()
+        ) as connect_mock:
+            await consumer.start()
+            self.assertEqual(2, connect_mock.await_count)
+
+    async def test_reconnect_if_timeout_exception_on_consume(self):
+
+        consumer = MyConsumer(HTTPConnection(urls=["http://127.0.0.1:5050"]))
+        with mock.patch.object(
+            consumer, "events", side_effect=TimeoutError()
+        ), mock.patch.object(
+            consumer, "should_run", side_effect=[True, True, False]
+        ), mock.patch.object(
+            consumer, "connect", CoroutineMock()
+        ) as connect_mock:
             await consumer.start()
             self.assertEqual(2, connect_mock.await_count)
 
