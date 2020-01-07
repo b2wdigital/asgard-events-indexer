@@ -27,7 +27,7 @@ python_version = "3.7"
 
 [scripts]
 test = "py.test -sv --cov=indexer --cov-report term-missing"
-lint = "mypy ./ --ignore-missing-imports"
+lint = "mypy indexer --ignore-missing-imports --html-report .mypy"
 fmt = "black --py36 -v --line-length 80 ."
 fmt-check = "black --py36 -v --line-length 80 --check ."
 isort-fmt = "isort --apply --recursive --line-width 80 --use-parentheses --no-inline-sort --multi-line 3 --trailing-comma ."
