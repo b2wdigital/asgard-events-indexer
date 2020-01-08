@@ -21,6 +21,7 @@ asgard-events-indexer = {editable = true,path = "."}
 ipython = "*"
 ipdb = "*"
 aioresponses = "==0.6.1"
+freezegun = "==0.3.12"
 
 [requires]
 python_version = "3.7"
