@@ -1,6 +1,6 @@
 import asyncio
 from abc import abstractmethod, ABC
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator, List, AsyncIterator
 
 from aiohttp import ClientError
 
@@ -24,7 +24,7 @@ class Consumer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def events(self) -> AsyncGenerator[Event, None]:
+    async def events(self):
         """
         Generator Assincrono que retorna todos os eventos do
         stream de eventos sendo consumido
