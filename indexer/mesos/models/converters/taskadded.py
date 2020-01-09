@@ -3,7 +3,8 @@ from enum import Enum, auto
 from typing import Tuple
 from uuid import uuid4
 
-from indexer.mesos.models import MesosRawEvent, MesosTaskAddedEvent
+from indexer.mesos.models.event import MesosRawEvent
+from indexer.mesos.models.taskadded import MesosTaskAddedEvent
 from indexer.models.converter import ModelConverter
 from indexer.models.event import (
     Event,

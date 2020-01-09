@@ -8,10 +8,10 @@ from indexer.conf import logger
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.mesos.events import MesosEvents
-from indexer.mesos.models import MesosRawEvent
 from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
 )
+from indexer.mesos.models.event import MesosRawEvent
 from indexer.models.event import Event
 
 
