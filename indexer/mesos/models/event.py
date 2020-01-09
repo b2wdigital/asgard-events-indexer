@@ -10,6 +10,6 @@ class MesosEventTypes(str, Enum):
     TASK_ADDED = "TASK_ADDED"
 
 
-class MesosRawEvent(BaseModel):
+class MesosEvent(BaseModel):
     type: MesosEventTypes
     task_added: Optional[MesosTaskAddedEvent]
