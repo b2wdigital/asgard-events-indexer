@@ -7,11 +7,10 @@ from pydantic import ValidationError
 from indexer.conf import logger
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
-from indexer.mesos.events import MesosEvents
 from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
 )
-from indexer.mesos.models.event import MesosRawEvent
+from indexer.mesos.models.event import MesosEventTypes, MesosRawEvent
 from indexer.models.event import Event
 
 
@@ -23,7 +22,7 @@ class MesosEventConsumer(Consumer):
         client = ClientSession()
         for url in self.conn.urls:
             resp = await client.post(
-                f"{url}/api/v1", json={"type": "SUBSCRIBE"}
+               f"{url}/api/v1", json={"type": "SUBSCRIBE"}
             )
             self.response = resp
 
@@ -34,7 +33,7 @@ class MesosEventConsumer(Consumer):
 
     async def events(self):
         async for mesos_event_data in self._mesos_events():
-            if mesos_event_data.type == MesosEvents.TASK_ADDED:
+            if mesos_event_data.type == MesosEventTypes.TASK_ADDED:
                 yield MesosTaskAddedEventConverter.to_asgard_model(
                     mesos_event_data.task_added
                 )

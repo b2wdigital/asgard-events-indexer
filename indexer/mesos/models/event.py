@@ -1,11 +1,15 @@
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
 
-from indexer.mesos.events import MesosEvents
 from indexer.mesos.models.taskadded import MesosTaskAddedEvent
 
 
+class MesosEventTypes(str, Enum):
+    TASK_ADDED = "TASK_ADDED"
+
+
 class MesosRawEvent(BaseModel):
-    type: MesosEvents
+    type: MesosEventTypes
     task_added: Optional[MesosTaskAddedEvent]

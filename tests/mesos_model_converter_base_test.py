@@ -1,7 +1,6 @@
 from unittest.mock import ANY
 
 from freezegun import freeze_time
-from tests.base import BaseTestCase
 
 from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
@@ -10,6 +9,7 @@ from indexer.mesos.models.converters.taskadded import (
     get_appname,
 )
 from indexer.mesos.models.taskadded import MesosTaskAddedEvent
+from tests.base import BaseTestCase
 
 
 class MesosEventModelConverterUtilTest(BaseTestCase):
