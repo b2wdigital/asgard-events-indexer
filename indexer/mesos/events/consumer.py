@@ -54,4 +54,3 @@ class MesosEventConsumer(Consumer):
                             "event-type": mesos_event_data.get("type"),
                         }
                     )
-
