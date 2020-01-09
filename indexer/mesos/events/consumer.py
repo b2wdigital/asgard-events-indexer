@@ -1,9 +1,7 @@
-import asyncio
 import json
-from typing import Dict, Any, AsyncGenerator, List, AsyncIterator, Coroutine
+from typing import AsyncGenerator, List
 
 from aiohttp import ClientSession
-from aiologger.loggers.json import JsonLogger
 from pydantic import ValidationError
 
 from indexer.conf import logger
