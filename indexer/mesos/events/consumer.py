@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator, List, Optional
 
 from aiohttp import ClientSession
 from pydantic import ValidationError
@@ -9,7 +9,9 @@ from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.mesos.events import MesosEvents
 from indexer.mesos.models import MesosRawEvent
-from indexer.mesos.models.converter import MesosTaskAddedEventConverter
+from indexer.mesos.models.converters.taskadded import (
+    MesosTaskAddedEventConverter,
+)
 from indexer.models.event import Event
 
 
@@ -37,7 +39,9 @@ class MesosEventConsumer(Consumer):
                     mesos_event_data.task_added
                 )
 
-    async def _mesos_events(self) -> AsyncGenerator[MesosRawEvent, None]:
+    async def _mesos_events(
+        self
+    ) -> AsyncGenerator[Optional[MesosRawEvent], None]:
         _data = b""
         async for chunk, end in self.response.content.iter_chunks():
             _data += chunk

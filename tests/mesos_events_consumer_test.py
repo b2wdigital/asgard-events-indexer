@@ -154,3 +154,20 @@ class MesosConsumerTest(BaseTestCase):
                         "event-type": UNKNOWN_EVENT_TYPE,
                     }
                 )
+
+    @skip("")
+    async def test_parse_task_updated_event_state_task_running(self):
+        """
+        type: TASK_UPDATED
+        state: TASK_RUNNING
+        """
+        self.fail()
+
+    @skip("")
+    async def test_parse_task_updated_event_state_task_finished(self):
+        """
+        type: TASK_UPATED
+        state: TASK_FINISHED
+        Pegar também a mensagem que diz o valor de retorno do container
+        """
+        self.fail()

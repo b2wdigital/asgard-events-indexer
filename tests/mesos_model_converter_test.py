@@ -3,7 +3,7 @@ from unittest.mock import ANY
 from freezegun import freeze_time
 
 from indexer.mesos.models import MesosTaskAddedEvent
-from indexer.mesos.models.converter import (
+from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
     get_task_namespace,
     remove_task_namespace,
