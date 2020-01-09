@@ -6,11 +6,11 @@ from aioresponses import aioresponses
 from asynctest import skip
 from asyncworker import App, RouteTypes
 from asyncworker.testing import HttpClientContext
-from tests.base import BaseTestCase
 from yarl import URL
 
 from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import MesosEventConsumer
+from tests.base import BaseTestCase
 
 mesos_task_added_event_data = {
     "task_added": {

@@ -1,74 +1,64 @@
 from unittest.mock import ANY
 
 from freezegun import freeze_time
-from tests.base import BaseTestCase
 
-from indexer.mesos.models import MesosEvent
+from indexer.mesos.models import MesosTaskAddedEvent
 from indexer.mesos.models.converter import (
-    MesosEventConverter,
+    MesosTaskAddedEventConverter,
     get_task_namespace,
     remove_task_namespace,
     get_appname,
 )
+from tests.base import BaseTestCase
 
 mesos_event_data = {
-    "task_added": {
-        "task": {
-            "agent_id": {
-                "value": "79ad3a13-b567-4273-ac8c-30378d35a439-S14522"
+    "task": {
+        "agent_id": {"value": "79ad3a13-b567-4273-ac8c-30378d35a439-S14522"},
+        "container": {
+            "docker": {
+                "force_pull_image": True,
+                "image": "alpine",
+                "network": "BRIDGE",
+                "parameters": [
+                    {"key": "label", "value": "hollowman.appname=/sieve/sleep"},
+                    {
+                        "key": "label",
+                        "value": "MESOS_TASK_ID=sieve_sleep.c73b9af1-1abb-11ea-a2e5-02429217540f",
+                    },
+                ],
+                "privileged": False,
             },
-            "container": {
-                "docker": {
-                    "force_pull_image": True,
-                    "image": "alpine",
-                    "network": "BRIDGE",
-                    "parameters": [
-                        {
-                            "key": "label",
-                            "value": "hollowman.appname=/sieve/sleep",
-                        },
-                        {
-                            "key": "label",
-                            "value": "MESOS_TASK_ID=sieve_sleep.c73b9af1-1abb-11ea-a2e5-02429217540f",
-                        },
-                    ],
-                    "privileged": False,
-                },
-                "type": "DOCKER",
-            },
-            "discovery": {
-                "name": "sleep.sieve",
-                "ports": {},
-                "visibility": "FRAMEWORK",
-            },
-            "framework_id": {
-                "value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000"
-            },
-            "labels": {
-                "labels": [{"key": "hollowman.default_scale", "value": "2"}]
-            },
+            "type": "DOCKER",
+        },
+        "discovery": {
             "name": "sleep.sieve",
-            "resources": [
-                {
-                    "allocation_info": {"role": "*"},
-                    "name": "cpus",
-                    "scalar": {"value": 0.1},
-                    "type": "SCALAR",
-                },
-                {
-                    "allocation_info": {"role": "*"},
-                    "name": "mem",
-                    "scalar": {"value": 32},
-                    "type": "SCALAR",
-                },
-            ],
-            "state": "TASK_STAGING",
-            "task_id": {
-                "value": "sieve_sleep.c73b9af1-1abb-11ea-a2e5-02429217540f"
+            "ports": {},
+            "visibility": "FRAMEWORK",
+        },
+        "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000"},
+        "labels": {
+            "labels": [{"key": "hollowman.default_scale", "value": "2"}]
+        },
+        "name": "sleep.sieve",
+        "resources": [
+            {
+                "allocation_info": {"role": "*"},
+                "name": "cpus",
+                "scalar": {"value": 0.1},
+                "type": "SCALAR",
             },
-        }
-    },
-    "type": "TASK_ADDED",
+            {
+                "allocation_info": {"role": "*"},
+                "name": "mem",
+                "scalar": {"value": 32},
+                "type": "SCALAR",
+            },
+        ],
+        "state": "TASK_STAGING",
+        "task_id": {
+            "value": "sieve_sleep.c73b9af1-1abb-11ea-a2e5-02429217540f"
+        },
+    }
 }
 
 
@@ -87,8 +77,8 @@ class MesosEventModelConverter(BaseTestCase):
             "error": None,
             "source": "MASTER",
         }
-        mesos_event = MesosEvent(**mesos_event_data)
-        asgard_event = MesosEventConverter.to_asgard_model(mesos_event)
+        mesos_event = MesosTaskAddedEvent(**mesos_event_data)
+        asgard_event = MesosTaskAddedEventConverter.to_asgard_model(mesos_event)
         self.assertEqual(asgard_event.dict(), asgard_event_data_expected)
 
     async def test_remove_namespace_from_task_id(self):
@@ -182,7 +172,7 @@ class MesosEventModelConverter(BaseTestCase):
         Checa que o campo `date` é uma data UTC serializada com informações
         sobre a timezone: "...+00:00"
         """
-        mesos_event = MesosEvent(**mesos_event_data)
-        asgard_event = MesosEventConverter.to_asgard_model(mesos_event)
+        mesos_event = MesosTaskAddedEvent(**mesos_event_data)
+        asgard_event = MesosTaskAddedEventConverter.to_asgard_model(mesos_event)
 
         self.assertEqual(asgard_event.date, "2018-06-16T13:16:00+00:00")

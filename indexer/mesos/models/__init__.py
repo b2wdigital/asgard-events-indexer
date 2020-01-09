@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from indexer.mesos.events import MesosEvents
+
 
 class AgentIdSpec(BaseModel):
     value: str
@@ -41,10 +43,10 @@ class TaskSpec(BaseModel):
     task_id: TaskIdSpec
 
 
-class TaskAddedSpec(BaseModel):
+class MesosTaskAddedEvent(BaseModel):
     task: TaskSpec
 
 
-class MesosEvent(BaseModel):
-    type: str
-    task_added: Optional[TaskAddedSpec]
+class MesosRawEvent(BaseModel):
+    type: MesosEvents
+    task_added: Optional[MesosTaskAddedEvent]
