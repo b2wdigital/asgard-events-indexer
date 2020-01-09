@@ -1,6 +1,8 @@
+import logging
 import os
 from typing import List
 
+from aiologger.loggers.json import JsonLogger
 from pydantic import BaseSettings
 
 
@@ -13,3 +15,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+logger = JsonLogger.with_default_handlers(flatten=True, level=logging.INFO)

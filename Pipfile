@@ -4,8 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pydantic = ">=0.30.0"
+pydantic = "==0.30.0"
 async-worker = "==0.11.1"
+aiologger = "==0.5.0"
 
 [dev-packages]
 asynctest = "==0.12.1"
@@ -20,13 +21,14 @@ asgard-events-indexer = {editable = true,path = "."}
 ipython = "*"
 ipdb = "*"
 aioresponses = "==0.6.1"
+freezegun = "==0.3.12"
 
 [requires]
 python_version = "3.7"
 
 [scripts]
-test = "py.test -v --cov=indexer --cov-report term-missing -v"
-lint = "mypy ./ --ignore-missing-imports"
+test = "py.test -sv --cov=indexer --cov-report term-missing"
+lint = "mypy indexer --ignore-missing-imports --html-report .mypy"
 fmt = "black --py36 -v --line-length 80 ."
 fmt-check = "black --py36 -v --line-length 80 --check ."
 isort-fmt = "isort --apply --recursive --line-width 80 --use-parentheses --no-inline-sort --multi-line 3 --trailing-comma ."
