@@ -10,7 +10,7 @@ from yarl import URL
 
 from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import MesosEventConsumer
-from tests.base import BaseTestCase
+from tests.base import LOGGER_MOCK, BaseTestCase
 
 mesos_task_added_event_data = {
     "task_added": {
@@ -100,3 +100,57 @@ class MesosConsumerTest(BaseTestCase):
             record_io_raw_data.encode("utf-8")
         )
         self.assertEqual(mesos_event.type, mesos_task_added_event_data["type"])
+
+    async def test_parse_unsupported_event_type(self):
+        """
+        Devemos falhar de forma consciente se recebermos um evento
+        que não estamos preparados para tratar, ou seja:
+        - Percebemos o erro
+        - Lançamos exception avisando do problema
+        - Continuamos a processar os próximos eventos
+        """
+        app = App()
+
+        UNKNOWN_EVENT_TYPE = "DONT_KNOW_THIS_EVENT"
+
+        unknown_event_data = {
+            "type": UNKNOWN_EVENT_TYPE,
+            "data": {"key": "value"},
+        }
+        unknown_event_str = json.dumps(unknown_event_data)
+        unknown_event_len = len(unknown_event_str)
+
+        @app.route(["/api/v1"], RouteTypes.HTTP, methods=["POST"])
+        async def api_v1(request: Request):
+            event_str = json.dumps(mesos_task_added_event_data)
+            len_data = len(event_str)
+            resp = StreamResponse(status=200)
+            await resp.prepare(request)
+            await resp.write(f"{len_data}\n{event_str}".encode("utf-8"))
+            await resp.write(f"{len_data}\n{event_str}".encode("utf-8"))
+            await resp.write(
+                f"{unknown_event_len}\n{unknown_event_str}".encode("utf-8")
+            )
+            return resp
+
+        from unittest import mock
+
+        with mock.patch(
+            "indexer.mesos.events.consumer.logger", LOGGER_MOCK
+        ) as mock_logger:
+            async with HttpClientContext(app) as client:
+                url = f"http://{client._server.host}:{client._server.port}"
+                consumer = MesosEventConsumer(HTTPConnection(urls=[url]))
+                await consumer.connect()
+                events = [ev async for ev in consumer.events()]
+                self.assertEqual(2, len(events))
+                self.assertEqual("sieve", events[0].namespace)
+                self.assertEqual("sleep", events[0].appname)
+                self.assertEqual("sieve", events[1].namespace)
+                self.assertEqual("sleep", events[1].appname)
+                mock_logger.exception.assert_awaited_with(
+                    {
+                        "event": "unsoported-mesos-event-received",
+                        "event-type": UNKNOWN_EVENT_TYPE,
+                    }
+                )

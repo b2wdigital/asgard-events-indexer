@@ -4,6 +4,7 @@ from typing import Dict, Any, AsyncGenerator, List, AsyncIterator, Coroutine
 
 from aiohttp import ClientSession
 from aiologger.loggers.json import JsonLogger
+from pydantic import ValidationError
 
 from indexer.conf import logger
 from indexer.connection import HTTPConnection
@@ -32,13 +33,13 @@ class MesosEventConsumer(Consumer):
         return MesosRawEvent(**mesos_event_data)
 
     async def events(self):
-        async for mesos_event_data in self._json_chunks():
+        async for mesos_event_data in self._mesos_events():
             if mesos_event_data.type == MesosEvents.TASK_ADDED:
                 yield MesosTaskAddedEventConverter.to_asgard_model(
                     mesos_event_data.task_added
                 )
 
-    async def _json_chunks(self) -> AsyncGenerator[MesosRawEvent, None]:
+    async def _mesos_events(self) -> AsyncGenerator[MesosRawEvent, None]:
         _data = b""
         async for chunk, end in self.response.content.iter_chunks():
             _data += chunk
@@ -46,5 +47,13 @@ class MesosEventConsumer(Consumer):
                 size, data_bytes = _data.decode("utf-8").split("\n")
                 mesos_event_data = json.loads(data_bytes)
                 _data = b""
-                yield MesosRawEvent(**mesos_event_data)
+                try:
+                    yield MesosRawEvent(**mesos_event_data)
+                except ValidationError as v:
+                    await logger.exception(
+                        {
+                            "event": "unsoported-mesos-event-received",
+                            "event-type": mesos_event_data.get("type"),
+                        }
+                    )
 
