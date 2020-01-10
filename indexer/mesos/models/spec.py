@@ -38,3 +38,16 @@ class TaskSpec(BaseModel):
     name: str
     state: TaskState
     task_id: TaskIdSpec
+
+
+class EventSourceSpec(str, Enum):
+    SOURCE_EXECUTOR = "SOURCE_EXECUTOR"
+
+
+class TaskStatusSpec(BaseModel):
+    agent_id: AgentIdSpec
+    message: str
+    source: EventSourceSpec
+    state: TaskState
+    task_id: TaskIdSpec
+    timestamp: int
