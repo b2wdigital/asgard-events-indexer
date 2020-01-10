@@ -1,5 +1,8 @@
+import json
+
+import pytest
 from asynctest import skip
-from tests.base import BaseTestCase
+from tests.base import BaseTestCase, FIXTURE_DIR
 
 from indexer.mesos.models.event import MesosEvent
 
@@ -41,13 +44,26 @@ class MesosEventModelTest(BaseTestCase):
     async def test_can_parse_task_updated_state_finished(self):
         mesos_event = MesosEvent(**mesos_state_finished_event_data)
         self.assertEqual(
-            mesos_event.task_updated.dict(),
+            mesos_event.task_updated.dict(skip_defaults=True),
             mesos_state_finished_event_data["task_updated"],
         )
 
     async def test_can_parse_task_updated_state_failed(self):
         mesos_event = MesosEvent(**mesos_state_failed_event_data)
         self.assertEqual(
-            mesos_event.task_updated.dict(),
+            mesos_event.task_updated.dict(skip_defaults=True),
             mesos_state_failed_event_data["task_updated"],
+        )
+
+    async def test_can_parse_task_updated_state_running(self):
+        mesos_state_running_event_data = open(
+            f"{FIXTURE_DIR}/mesos_state_running_event_data.json"
+        ).read()
+        mesos_state_running_event_dict = json.loads(
+            mesos_state_running_event_data
+        )
+        mesos_event = MesosEvent(**mesos_state_running_event_dict)
+        self.assertEqual(
+            mesos_event.task_updated.dict(skip_defaults=True),
+            mesos_state_running_event_dict["task_updated"],
         )

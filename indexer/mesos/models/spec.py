@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -46,7 +47,8 @@ class EventSourceSpec(str, Enum):
 
 class TaskStatusSpec(BaseModel):
     agent_id: AgentIdSpec
-    message: str
+    message: Optional[str]
+    data: Optional[str]
     source: EventSourceSpec
     state: TaskState
     task_id: TaskIdSpec
