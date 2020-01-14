@@ -41,7 +41,7 @@ class TaskSpec(BaseModel):
     task_id: TaskIdSpec
 
 
-class EventSourceSpec(str, Enum):
+class MesosEventSourceSpec(str, Enum):
     SOURCE_EXECUTOR = "SOURCE_EXECUTOR"
 
 
@@ -49,7 +49,7 @@ class TaskStatusSpec(BaseModel):
     agent_id: AgentIdSpec
     message: Optional[str]
     data: Optional[str]
-    source: EventSourceSpec
+    source: MesosEventSourceSpec
     state: TaskState
     task_id: TaskIdSpec
     timestamp: int
