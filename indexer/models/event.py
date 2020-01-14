@@ -10,6 +10,11 @@ class EventSourceSpec(str, Enum):
     SOURCE_AGENT = "AGENT"
 
 
+class BackendInfoTypes(str, Enum):
+    MARATHON = "Mesos/Marathon"
+    CHRONOS = "Mesos/Chronos"
+
+
 class BackendInfoSpec(BaseModel):
     name: str
 

@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from typing import Tuple
 
-from indexer.mesos.models.spec import BackendInfoTypes
+from indexer.models.event import BackendInfoTypes
 
 
 class SplitType(Enum):
@@ -11,7 +11,7 @@ class SplitType(Enum):
 
 def split_task_id(task_id: str, split_type: SplitType) -> Tuple[str, str, str]:
     """
-    Recebe um task_id e retorna 3 valores: 
+    Recebe um task_id e retorna 3 valores:
     (namespace, appname, task_id_sem_namespace)
     """
     if split_type == SplitType.MARATHON:
@@ -54,9 +54,3 @@ def get_appname(task_id: str) -> str:
 
     _, appname, _ = split_task_id(task_id, split_type)
     return appname
-
-
-def get_backend_info(task_id: str) -> BackendInfoTypes:
-    if task_id.startswith("ct"):
-        return BackendInfoTypes.CHRONOS
-    return BackendInfoTypes.MARATHON
