@@ -6,6 +6,7 @@ from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
 )
 from indexer.mesos.models.taskadded import MesosTaskAddedEvent
+from indexer.models.util import BackendInfoTypes
 from tests.base import BaseTestCase
 
 mesos_event_data = {
@@ -67,7 +68,7 @@ class MesosModelConverterTaskAddedEventTest(BaseTestCase):
             "date": ANY,
             "appname": "sleep",
             "namespace": "sieve",
-            "backend_info": {"name": "Mesos"},
+            "backend_info": {"name": BackendInfoTypes.MARATHON},
             "task": {"id": "sleep.c73b9af1-1abb-11ea-a2e5-02429217540f"},
             "agent": {"id": "79ad3a13-b567-4273-ac8c-30378d35a439-S14522"},
             "status": "TASK_STAGING",

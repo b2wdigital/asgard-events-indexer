@@ -18,6 +18,7 @@ from indexer.models.event import (
     TaskInfoSpec,
     AgentInfoSpec,
 )
+from indexer.models.util import get_backend_info
 
 
 class MesosTaskAddedEventConverter(ModelConverter[Event, MesosTaskAddedEvent]):
@@ -34,7 +35,7 @@ class MesosTaskAddedEventConverter(ModelConverter[Event, MesosTaskAddedEvent]):
             date=datetime.now(timezone.utc).isoformat(),
             appname=get_appname(task_id),
             namespace=get_task_namespace(task_id),
-            backend_info=BackendInfoSpec(name="Mesos"),
+            backend_info=BackendInfoSpec(name=get_backend_info(task_id)),
             task=TaskInfoSpec(id=remove_task_namespace(task_id)),
             agent=AgentInfoSpec(id=agent_id),
             status=other.task.state,
