@@ -71,12 +71,13 @@ class MesosModelConverterTaskAddedEventTest(BaseTestCase):
             "task": {"id": "sleep.c73b9af1-1abb-11ea-a2e5-02429217540f"},
             "agent": {"id": "79ad3a13-b567-4273-ac8c-30378d35a439-S14522"},
             "status": "TASK_STAGING",
-            "error": None,
             "source": "MASTER",
         }
         mesos_event = MesosTaskAddedEvent(**mesos_event_data)
         asgard_event = MesosTaskAddedEventConverter.to_asgard_model(mesos_event)
-        self.assertEqual(asgard_event.dict(), asgard_event_data_expected)
+        self.assertEqual(
+            asgard_event.dict(skip_defaults=True), asgard_event_data_expected
+        )
 
     @freeze_time("2018-06-16T10:16:00-03:00")
     async def test_check_date_has_tzinfo(self):

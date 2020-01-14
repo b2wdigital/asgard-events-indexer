@@ -3,6 +3,7 @@ from enum import Enum, auto
 from typing import Tuple
 from uuid import uuid4
 
+from indexer.mesos.models.converters.spec import MesosEventSourceSpecConverter
 from indexer.mesos.models.converters.util import (
     get_appname,
     get_task_namespace,
@@ -11,6 +12,7 @@ from indexer.mesos.models.converters.util import (
 from indexer.mesos.models.taskadded import MesosTaskAddedEvent
 from indexer.models.converter import ModelConverter
 from indexer.models.event import (
+    EventSourceSpec,
     Event,
     BackendInfoSpec,
     TaskInfoSpec,
@@ -36,4 +38,5 @@ class MesosTaskAddedEventConverter(ModelConverter[Event, MesosTaskAddedEvent]):
             task=TaskInfoSpec(id=remove_task_namespace(task_id)),
             agent=AgentInfoSpec(id=agent_id),
             status=other.task.state,
+            source=EventSourceSpec.SOURCE_MASTER,
         )
