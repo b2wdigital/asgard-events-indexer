@@ -1,10 +1,7 @@
 import json
 
-import pytest
-from asynctest import skip
-from tests.base import BaseTestCase, FIXTURE_DIR
-
 from indexer.mesos.models.event import MesosEvent
+from tests.base import BaseTestCase, FIXTURE_DIR
 
 mesos_state_finished_event_data = {
     "task_updated": {

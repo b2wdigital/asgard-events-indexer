@@ -1,14 +1,8 @@
-from unittest.mock import ANY
-
-from freezegun import freeze_time
-
-from indexer.mesos.models.converters.taskadded import (
-    MesosTaskAddedEventConverter,
+from indexer.mesos.models.converters.util import (
     get_task_namespace,
     remove_task_namespace,
     get_appname,
 )
-from indexer.mesos.models.taskadded import MesosTaskAddedEvent
 from tests.base import BaseTestCase
 
 
