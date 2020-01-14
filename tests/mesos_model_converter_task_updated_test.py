@@ -1,13 +1,13 @@
 from asynctest import skip
 from asynctest.mock import ANY
 from freezegun import freeze_time
-from tests.base import BaseTestCase
 
 from indexer.mesos.models.converters.taskupdated import (
     MesosTaskUpdatedEventConverter,
 )
 from indexer.mesos.models.taskupdated import MesosTaskUpdatedEvent
 from indexer.models.event import BackendInfoTypes, EventSourceSpec
+from tests.base import BaseTestCase
 
 mesos_state_finished_event_data = {
     "state": "TASK_FINISHED",

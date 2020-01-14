@@ -1,12 +1,9 @@
-from tests.base import BaseTestCase
-
 from indexer.mesos.models.converters.util import (
     get_task_namespace,
     remove_task_namespace,
     get_appname,
-    get_backend_info,
 )
-from indexer.mesos.models.spec import BackendInfoTypes
+from tests.base import BaseTestCase
 
 
 class MesosEventModelConverterUtilTest(BaseTestCase):
@@ -93,16 +90,4 @@ class MesosEventModelConverterUtilTest(BaseTestCase):
         self.assertEqual(
             "my-other-app-name",
             get_appname("ct:1578492720011:0:asgard-my-other-app-name:"),
-        )
-
-    async def test_get_backend_info_types(self):
-        self.assertEqual(
-            BackendInfoTypes.CHRONOS,
-            get_backend_info("ct:1578492720011:0:asgard-my-other-app-name:"),
-        )
-        self.assertEqual(
-            BackendInfoTypes.MARATHON,
-            get_backend_info(
-                "sieve_sieve_sleep.c73b9af1-1abb-11ea-a2e5-02429217540f"
-            ),
         )
