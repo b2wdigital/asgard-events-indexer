@@ -38,35 +38,6 @@ mesos_state_failed_event_data = {
 }
 
 
-# {
-#    "file_path": "/home/daltonmatos/src/asgard-events-indexer/indexer/mesos/events/consumer.py",
-#    "function": "_mesos_events",
-#    "level": "INFO",
-#    "line_number": 50,
-#    "logged_at": "2020-01-14T14:17:06.370115-03:00",
-#    "task_updated": {
-#        "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000"},
-#        "state": "TASK_FAILED",
-#        "status": {
-#            "agent_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-S28"},
-#            "executor_id": {
-#                "value": "asgard_sleep.af2c0f60-36f1-11ea-a2e5-02429217540f"
-#            },
-#            "message": "Failed to launch container: Failed to run 'docker -H unix:///var/run/docker.sock pull debian7': exited with status 1; stderr='Error response from daemon: pull access denied for debian7, repository does not exist or may require 'docker login'\n'",
-#            "reason": "REASON_CONTAINER_LAUNCH_FAILED",
-#            "source": "SOURCE_AGENT",
-#            "state": "TASK_FAILED",
-#            "task_id": {
-#                "value": "asgard_sleep.af2c0f60-36f1-11ea-a2e5-02429217540f"
-#            },
-#            "timestamp": 1_579_022_226.31673,
-#            "uuid": "TYzCq2GuTRK5f36V9y33TQ==",
-#        },
-#    },
-#    "type": "TASK_UPDATED",
-# }
-
-
 class MesosTaskUpdatedConverterTest(BaseTestCase):
     async def test_convert_to_asgard_model_state_finished(self):
         """

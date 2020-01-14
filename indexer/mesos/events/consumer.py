@@ -10,6 +10,9 @@ from indexer.consumer import Consumer
 from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
 )
+from indexer.mesos.models.converters.taskupdated import (
+    MesosTaskUpdatedEventConverter,
+)
 from indexer.mesos.models.event import MesosEventTypes, MesosEvent
 from indexer.models.event import Event
 
@@ -36,6 +39,10 @@ class MesosEventConsumer(Consumer):
             if mesos_event_data.type == MesosEventTypes.TASK_ADDED:
                 yield MesosTaskAddedEventConverter.to_asgard_model(
                     mesos_event_data.task_added
+                )
+            if mesos_event_data.type == MesosEventTypes.TASK_UPDATED:
+                yield MesosTaskUpdatedEventConverter.to_asgard_model(
+                    mesos_event_data.task_updated
                 )
 
     async def _mesos_events(self) -> AsyncGenerator[Optional[MesosEvent], None]:

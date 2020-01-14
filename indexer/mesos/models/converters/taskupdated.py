@@ -8,7 +8,6 @@ from indexer.mesos.models.converters.util import (
     get_task_namespace,
     remove_task_namespace,
 )
-from indexer.mesos.models.spec import MesosEventSourceSpec
 from indexer.mesos.models.taskupdated import MesosTaskUpdatedEvent
 from indexer.models.converter import ModelConverter
 from indexer.models.event import (
@@ -16,7 +15,6 @@ from indexer.models.event import (
     BackendInfoSpec,
     TaskInfoSpec,
     AgentInfoSpec,
-    EventSourceSpec,
     ErrorSpec,
 )
 from indexer.models.util import get_backend_info
@@ -27,7 +25,6 @@ class MesosTaskUpdatedEventConverter(
 ):
     @staticmethod
     def to_asgard_model(other: MesosTaskUpdatedEvent) -> Event:
-        message = None
         extra: Dict[str, Any] = {}
 
         if other.status.reason:
