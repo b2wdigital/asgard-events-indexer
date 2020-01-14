@@ -60,3 +60,4 @@ class Event(BaseModel):
     agent: AgentInfoSpec
     status: TaskStatus
     error: Optional[ErrorSpec]
+    message: Optional[str]

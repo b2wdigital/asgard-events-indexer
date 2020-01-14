@@ -50,6 +50,7 @@ class MesosEventSourceSpec(str, Enum):
 class TaskStatusSpec(BaseModel):
     agent_id: AgentIdSpec
     message: Optional[str]
+    reason: Optional[str]
     data: Optional[str]
     source: MesosEventSourceSpec
     state: TaskState

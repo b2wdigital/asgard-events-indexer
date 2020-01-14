@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Dict, Any
 from uuid import uuid4
 
 from indexer.mesos.models.converters.spec import MesosEventSourceSpecConverter
@@ -16,6 +17,7 @@ from indexer.models.event import (
     TaskInfoSpec,
     AgentInfoSpec,
     EventSourceSpec,
+    ErrorSpec,
 )
 from indexer.models.util import get_backend_info
 
@@ -25,6 +27,16 @@ class MesosTaskUpdatedEventConverter(
 ):
     @staticmethod
     def to_asgard_model(other: MesosTaskUpdatedEvent) -> Event:
+        message = None
+        extra: Dict[str, Any] = {}
+
+        if other.status.reason:
+            extra["error"] = ErrorSpec(
+                message=other.status.message, reason=other.status.reason
+            )
+        elif other.status.message:
+            extra["message"] = other.status.message
+
         task_id = other.status.task_id.value
         agent_id = other.status.agent_id.value
         return Event(
@@ -41,6 +53,7 @@ class MesosTaskUpdatedEventConverter(
             source=MesosEventSourceSpecConverter.to_asgard_model(
                 other.status.source
             ),
+            **extra,
         )
 
     @staticmethod
