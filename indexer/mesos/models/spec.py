@@ -43,6 +43,8 @@ class TaskSpec(BaseModel):
 
 class MesosEventSourceSpec(str, Enum):
     SOURCE_EXECUTOR = "SOURCE_EXECUTOR"
+    SOURCE_MASTER = "SOURCE_MASTER"
+    SOURCE_AGENT = "SOURCE_AGENT"
 
 
 class TaskStatusSpec(BaseModel):
