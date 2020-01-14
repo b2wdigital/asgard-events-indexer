@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from indexer.mesos.models.converters.spec import MesosEventSourceSpecConverter
 from indexer.mesos.models.converters.util import (
     get_appname,
     get_task_namespace,
     remove_task_namespace,
 )
+from indexer.mesos.models.spec import MesosEventSourceSpec
 from indexer.mesos.models.taskupdated import MesosTaskUpdatedEvent
 from indexer.models.converter import ModelConverter
 from indexer.models.event import (
@@ -36,7 +38,9 @@ class MesosTaskUpdatedEventConverter(
             task=TaskInfoSpec(id=remove_task_namespace(task_id)),
             agent=AgentInfoSpec(id=agent_id),
             status=other.status.state,
-            source=EventSourceSpec.SOURCE_EXECUTOR,
+            source=MesosEventSourceSpecConverter.to_asgard_model(
+                other.status.source
+            ),
         )
 
     @staticmethod
