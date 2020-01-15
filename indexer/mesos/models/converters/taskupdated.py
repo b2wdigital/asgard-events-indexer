@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from uuid import uuid4
 
-from indexer.mesos.models.converters.spec import MesosEventSourceSpecConverter
+from indexer.mesos.models.converters.spec import (
+    MesosEventSourceSpecConverter,
+    MesosTaskDataSpecConverter,
+)
 from indexer.mesos.models.converters.util import (
     get_appname,
     get_task_namespace,
@@ -33,6 +36,13 @@ class MesosTaskUpdatedEventConverter(
             )
         elif other.status.message:
             extra["message"] = other.status.message
+
+        task_details = other.status.task_details()
+
+        if task_details:
+            extra[
+                "container_info"
+            ] = MesosTaskDataSpecConverter.to_asgard_model(task_details)
 
         task_id = other.status.task_id.value
         agent_id = other.status.agent_id.value
