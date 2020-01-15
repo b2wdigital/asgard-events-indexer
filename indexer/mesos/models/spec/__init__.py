@@ -1,7 +1,11 @@
+import json
+from base64 import b64decode
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
+
+from indexer.mesos.models.spec.taskdata import MesosTaskDataSpec
 
 
 class AgentIdSpec(BaseModel):
@@ -56,3 +60,16 @@ class TaskStatusSpec(BaseModel):
     state: TaskState
     task_id: TaskIdSpec
     timestamp: int
+
+    def task_details(self) -> Optional[MesosTaskDataSpec]:
+        if self.data:
+            b64_decoded = b64decode(self.data)
+            data_dict = json.loads(b64_decoded)
+            task_data = data_dict[0]
+            # Temos que mudar de Config pata config pois o pydantic
+            # usa o nome Config para guardar as configuracões de um model
+            # https://pydantic-docs.helpmanual.io/usage/model_config/
+            task_data["config"] = task_data["Config"]
+            del task_data["Config"]
+            return MesosTaskDataSpec(**task_data)
+        return None

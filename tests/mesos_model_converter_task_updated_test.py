@@ -91,3 +91,26 @@ class MesosTaskUpdatedConverterTest(BaseTestCase):
         self.assertEqual(
             asgard_event.dict(skip_defaults=True), asgard_event_expected_data
         )
+
+    @skip("")
+    async def test_convert_to_asgard_model_state_running(self):
+        """
+        Vamos fazer a conversão normalmentem, mas vamos pegar alguns dados do campo
+        `data`. Lá temos dados como nome do container, portas alocadas a essa intância, etc.
+        Dados que vamos pegar do campo `data`:
+         - State/Running
+         - State/Pid
+         - Name (que é ocontainer name. Remover a `/` do início)
+         - HostConfig/
+            - CpuShares
+            - CpuQuota
+            - MemorySwap
+            - MemorySwappiness
+         - Config/
+            - Labels
+            - Hostname
+            - Env (vale a pena? Corremos o risco de indexar informacões sensíveis)
+            - Image
+            - Volumes (Pegar um exemplo)
+        """
+        self.fail()
