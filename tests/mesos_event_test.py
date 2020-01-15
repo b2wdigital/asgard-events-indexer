@@ -37,6 +37,20 @@ mesos_state_failed_event_data = {
 }
 
 
+mesos_task_added_event_data = {
+    "task_added": {
+        "task": {
+            "agent_id": {"value": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
+            "container": {"type": "DOCKER"},
+            "name": "ChronosTask:asgard-heimdall",
+            "state": "TASK_STAGING",
+            "task_id": {"value": "ct:1579100880008:0:asgard-heimdall:"},
+        }
+    },
+    "type": "TASK_ADDED",
+}
+
+
 class MesosEventModelTest(BaseTestCase):
     async def setUp(self):
 
@@ -60,6 +74,14 @@ class MesosEventModelTest(BaseTestCase):
             mesos_event.task_updated.dict(skip_defaults=True),
             mesos_state_failed_event_data["task_updated"],
         )
+
+    async def test_can_parse_task_updated_state_failed_no_task_data(self):
+        mesos_event = MesosEvent(**mesos_state_failed_event_data)
+        self.assertIsNone(mesos_event.task_details())
+
+    async def test_can_parse_task_added_no_task_data(self):
+        mesos_event = MesosEvent(**mesos_task_added_event_data)
+        self.assertIsNone(mesos_event.task_details())
 
     async def test_can_parse_task_updated_state_running(self):
 
