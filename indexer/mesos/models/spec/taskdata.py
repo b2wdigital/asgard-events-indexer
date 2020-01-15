@@ -12,6 +12,8 @@ class MesosTaskDataConfigSpec(BaseModel):
 class MesosTaskDataStateSpec(BaseModel):
     Running: bool
     Pid: int
+    ExitCode: int
+    Error: str
 
 
 class MesosTaskDataHostConfigSpec(BaseModel):

@@ -94,8 +94,11 @@ class MesosEventModelTest(BaseTestCase):
     async def test_parse_optional_data_field_state_running(self):
         """
         Dados que vamos pegar do campo `data`:
-         - State/Running
-         - State/Pid
+         - State/
+            - Running
+            - Pid
+            - ExitCode
+            - Error
          - Name (que é ocontainer name. Remover a `/` do início)
          - Mounts
          - HostConfig/
@@ -114,6 +117,8 @@ class MesosEventModelTest(BaseTestCase):
         # State
         self.assertEqual(True, task_details.State.Running)
         self.assertEqual(32306, task_details.State.Pid)
+        self.assertEqual(0, task_details.State.ExitCode)
+        self.assertEqual("", task_details.State.Error)
 
         # Mounts
         self.assertEqual(2, len(task_details.Mounts))
