@@ -171,14 +171,6 @@ class MesosConsumerTest(BaseTestCase):
                     }
                 )
 
-    @skip("")
-    async def test_parse_task_updated_event_state_task_running(self):
-        """
-        type: TASK_UPDATED
-        state: TASK_RUNNING
-        """
-        self.fail()
-
     async def test_parse_task_updated_event_state_task_finished(self):
         """
         type: TASK_UPATED

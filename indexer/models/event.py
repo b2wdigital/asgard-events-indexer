@@ -53,7 +53,7 @@ class ContainerInfoResourcesSpec(BaseModel):
     cpu_shares: int
     cpu_quota: int
     memory_swap: int
-    memory_swappiness: int
+    memory_swappiness: Optional[int]
 
 
 class ContainerInfoVolumeItemSpec(BaseModel):

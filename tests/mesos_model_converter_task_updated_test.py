@@ -157,3 +157,21 @@ class MesosTaskUpdatedConverterTest(BaseTestCase):
         self.assertEqual(
             asgard_event.dict(skip_defaults=True), asgard_event_expected_data
         )
+
+    async def test_task_updated_state_running_without_swappiness(self):
+
+        event_state_running_dict = json.loads(
+            open(
+                FIXTURE_DIR
+                + "/mesos_state_running_event_data_without_swappiness.json"
+            ).read()
+        )
+        mesos_task_updated_event = MesosTaskUpdatedEvent(
+            **event_state_running_dict["task_updated"]
+        )
+        asgard_event = MesosTaskUpdatedEventConverter.to_asgard_model(
+            mesos_task_updated_event
+        )
+        self.assertIsNone(
+            asgard_event.container_info.resources.memory_swappiness
+        )
