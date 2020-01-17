@@ -1,5 +1,3 @@
-import asyncio
-
 from indexer.conf import settings
 from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import MesosEventConsumer
