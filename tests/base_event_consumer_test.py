@@ -5,7 +5,6 @@ from aiohttp import ClientError
 from asynctest import mock
 from asynctest.mock import CoroutineMock
 
-from indexer.conf import logger
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.models.event import Event

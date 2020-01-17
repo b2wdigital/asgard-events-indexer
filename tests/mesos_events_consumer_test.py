@@ -1,15 +1,16 @@
 import json
-from typing import List
 
 from aiohttp.web import Request, StreamResponse
 from aioresponses import aioresponses
 from asynctest import skip
+from asynctest.mock import ANY
 from asyncworker import App, RouteTypes
 from asyncworker.testing import HttpClientContext
 from yarl import URL
 
 from indexer.connection import HTTPConnection
 from indexer.mesos.events.consumer import MesosEventConsumer
+from indexer.models.event import BackendInfoTypes, EventSourceSpec
 from tests.base import LOGGER_MOCK, BaseTestCase
 
 mesos_task_added_event_data = {
@@ -27,6 +28,21 @@ mesos_task_added_event_data = {
         }
     },
     "type": "TASK_ADDED",
+}
+
+mesos_state_finished_event_data = {
+    "task_updated": {
+        "state": "TASK_FINISHED",
+        "status": {
+            "agent_id": {"value": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
+            "message": "Container exited with status 0",
+            "source": "SOURCE_EXECUTOR",
+            "state": "TASK_FINISHED",
+            "task_id": {"value": "ct:1578593280013:0:asgard-heimdall:"},
+            "timestamp": 1_578_685_955,
+        },
+    },
+    "type": "TASK_UPDATED",
 }
 
 
@@ -154,3 +170,44 @@ class MesosConsumerTest(BaseTestCase):
                         "event-type": UNKNOWN_EVENT_TYPE,
                     }
                 )
+
+    async def test_parse_task_updated_event_state_task_finished(self):
+        """
+        type: TASK_UPATED
+        state: TASK_FINISHED
+        Pegar também a mensagem que diz o valor de retorno do container
+        """
+
+        asgard_event_expected_data = {
+            "id": ANY,
+            "date": "2020-01-10T19:52:35+00:00",
+            "appname": "heimdall",
+            "namespace": "asgard",
+            "backend_info": {"name": BackendInfoTypes.CHRONOS},
+            "task": {"id": "heimdall"},
+            "agent": {"id": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
+            "status": "TASK_FINISHED",
+            "source": EventSourceSpec.SOURCE_EXECUTOR,
+            "message": "Container exited with status 0",
+        }
+
+        app = App()
+
+        @app.route(["/api/v1"], RouteTypes.HTTP, methods=["POST"])
+        async def api_v1(request: Request):
+            event_str = json.dumps(mesos_state_finished_event_data)
+            len_data = len(event_str)
+            resp = StreamResponse(status=200)
+            await resp.prepare(request)
+            await resp.write(f"{len_data}\n{event_str}".encode("utf-8"))
+            return resp
+
+        async with HttpClientContext(app) as client:
+            url = f"http://{client._server.host}:{client._server.port}"
+            consumer = MesosEventConsumer(HTTPConnection(urls=[url]))
+            await consumer.connect()
+            events = [ev async for ev in consumer.events()]
+            self.assertEqual(1, len(events))
+            self.assertEqual(
+                events[0].dict(skip_defaults=True), asgard_event_expected_data
+            )

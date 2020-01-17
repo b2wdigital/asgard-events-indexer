@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -8,6 +8,11 @@ class EventSourceSpec(str, Enum):
     SOURCE_MASTER = "MASTER"
     SOURCE_EXECUTOR = "EXECUTOR"
     SOURCE_AGENT = "AGENT"
+
+
+class BackendInfoTypes(str, Enum):
+    MARATHON = "Mesos/Marathon"
+    CHRONOS = "Mesos/Chronos"
 
 
 class BackendInfoSpec(BaseModel):
@@ -44,6 +49,37 @@ class ErrorSpec(BaseModel):
     reason: str
 
 
+class ContainerInfoResourcesSpec(BaseModel):
+    cpu_shares: int
+    cpu_quota: int
+    memory_swap: int
+    memory_swappiness: Optional[int]
+
+
+class ContainerInfoVolumeItemSpec(BaseModel):
+    host_path: str
+    container_path: str
+    mode: str
+
+
+class ContainerInfoLabelsItemSpec(BaseModel):
+    name: str
+    value: str
+
+
+class ContainerInfoSpec(BaseModel):
+    pid: int
+    running: bool
+    exit_code: int
+    error: str
+    name: str
+    resources: ContainerInfoResourcesSpec
+    volumes: List[ContainerInfoVolumeItemSpec]
+    hostname: str
+    image: str
+    labels: List[ContainerInfoLabelsItemSpec]
+
+
 class Event(BaseModel):
     id: str
     date: str
@@ -52,6 +88,8 @@ class Event(BaseModel):
     source: EventSourceSpec = EventSourceSpec.SOURCE_MASTER
     backend_info: BackendInfoSpec
     task: TaskInfoSpec
+    container_info: Optional[ContainerInfoSpec]
     agent: AgentInfoSpec
     status: TaskStatus
     error: Optional[ErrorSpec]
+    message: Optional[str]
