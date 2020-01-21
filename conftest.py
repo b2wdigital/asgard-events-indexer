@@ -7,7 +7,8 @@ os.environ["ENV"] = ENV
 VALUES = {
     "MESOS_MASTER_URLS": json.dumps(
         ["http://127.0.0.1:5050", "http://10.0.0.1:5050"]
-    )
+    ),
+    "ES_OUTPUT_URLS": json.dumps(["http://127.0.0.1:9200"]),
 }
 
 

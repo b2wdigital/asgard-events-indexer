@@ -1,14 +1,20 @@
+import os
 from asyncio import TimeoutError
+from importlib import reload
 from typing import List
 
 from aiohttp import ClientError
-from asynctest import mock
+from asynctest import skip, mock
 from asynctest.mock import CoroutineMock
 
+from indexer import consumer as consumer_module
 from indexer import writter as writter_module
+from indexer import conf as conf_module
+from indexer.conf import Settings
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.models.event import Event
+from indexer.writter import OutputWritter
 from tests.base import BaseTestCase, LOGGER_MOCK
 
 
@@ -105,14 +111,44 @@ class EventConsumerTest(BaseTestCase):
         self.assertFalse(consumer.should_run())
 
     async def test_write_output_calls_writter_instance(self):
-        consumer = StdOutConsumer(
-            HTTPConnection(urls=["http://127.0.0.1:5050"])
-        )
 
-        with mock.patch.object(
-            writter_module, "logger", LOGGER_MOCK
-        ) as logger_mock:
-            event_mock = mock.MagicMock()
-            event_mock.dict.return_value = {"status": "TASK_RUNNING"}
-            await consumer.write_output([event_mock])
-            logger_mock.info.assert_awaited_with({"status": "TASK_RUNNING"})
+        with mock.patch.dict(os.environ, TEST_OUTPUT_TO_STDOUT="1"):
+            settings_stub = Settings()
+
+            with mock.patch.object(
+                consumer_module, "settings", settings_stub
+            ), mock.patch.object(
+                writter_module, "logger", LOGGER_MOCK
+            ) as logger_mock:
+                event_mock = mock.MagicMock()
+                event_mock.dict.return_value = {"status": "TASK_RUNNING"}
+
+                consumer = StdOutConsumer(
+                    HTTPConnection(urls=["http://127.0.0.1:5050"])
+                )
+                await consumer.write_output([event_mock])
+                logger_mock.info.assert_awaited_with({"status": "TASK_RUNNING"})
+
+    @skip("")
+    async def test_consumer_instantiate_es_writter_if_env_url_set(self):
+
+        with mock.patch.dict(
+            os.environ,
+            INDEXER_ES_OUTPUT_URLS='["http://es.asgard.service:9200"]',
+        ):
+            settings_stub = Settings()
+            with mock.patch.object(consumer_module, "settings", settings_stub):
+                consumer = StdOutConsumer(
+                    HTTPConnection(urls=["http://127.0.0.1:5050"])
+                )
+                self.assertTrue(isinstance(consumer.output[0], OutputWritter))
+
+    async def test_consumer_instantiate_stdout_writter_if_env_url_set(self):
+
+        with mock.patch.dict(os.environ, TEST_OUTPUT_TO_STDOUT="1"):
+            settings_stub = Settings()
+            with mock.patch.object(consumer_module, "settings", settings_stub):
+                consumer = StdOutConsumer(
+                    HTTPConnection(urls=["http://127.0.0.1:5050"])
+                )
+                self.assertTrue(isinstance(consumer.output[0], OutputWritter))
