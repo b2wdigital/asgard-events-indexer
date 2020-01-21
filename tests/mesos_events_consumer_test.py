@@ -1,5 +1,6 @@
 import json
 
+from aiohttp.client import ClientTimeout
 from aiohttp.web import Request, StreamResponse
 from aioresponses import aioresponses
 from asynctest import mock
@@ -226,3 +227,19 @@ class MesosConsumerTest(BaseTestCase):
             )
             await consumer.connect()
             client_session_mock.assert_called_with(timeout=timeout_config)
+
+    async def test_use_next_mesos_urls_if_needed(self):
+        with aioresponses() as rsps:
+            rsps.post(
+                f"{settings.MESOS_MASTER_URLS[0]}/api/v1",
+                exception=ClientTimeout("timeout"),
+            )
+            rsps.post(
+                f"{settings.MESOS_MASTER_URLS[1]}/api/v1",
+                exception=ClientTimeout("timeout"),
+            )
+            consumer = MesosEventConsumer(
+                HTTPConnection(urls=settings.MESOS_MASTER_URLS)
+            )
+            await consumer.connect()
+        self.assertTrue(True)

@@ -4,4 +4,7 @@ from tests.base import BaseTestCase
 
 class ConfTest(BaseTestCase):
     async def test_load_mesos_urls(self):
-        self.assertEqual(settings.MESOS_MASTER_URLS, ["http://127.0.0.1:5050"])
+        self.assertEqual(
+            settings.MESOS_MASTER_URLS,
+            ["http://127.0.0.1:5050", "http://10.0.0.1:5050"],
+        )
