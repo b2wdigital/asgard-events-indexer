@@ -5,6 +5,7 @@ from aiohttp import ClientError
 from asynctest import mock
 from asynctest.mock import CoroutineMock
 
+from indexer import writter as writter_module
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.models.event import Event
@@ -25,6 +26,14 @@ class MyConsumer(Consumer):
 
     async def write_output(self, events: List[Event]) -> None:
         self.all_events.extend(events)
+
+
+class StdOutConsumer(Consumer):
+    async def connect(self):
+        pass
+
+    async def events(self):
+        pass
 
 
 class EventConsumerTest(BaseTestCase):
@@ -94,3 +103,16 @@ class EventConsumerTest(BaseTestCase):
 
         consumer._run = False
         self.assertFalse(consumer.should_run())
+
+    async def test_write_output_calls_writter_instance(self):
+        consumer = StdOutConsumer(
+            HTTPConnection(urls=["http://127.0.0.1:5050"])
+        )
+
+        with mock.patch.object(
+            writter_module, "logger", LOGGER_MOCK
+        ) as logger_mock:
+            event_mock = mock.MagicMock()
+            event_mock.dict.return_value = {"status": "TASK_RUNNING"}
+            await consumer.write_output([event_mock])
+            logger_mock.info.assert_awaited_with({"status": "TASK_RUNNING"})

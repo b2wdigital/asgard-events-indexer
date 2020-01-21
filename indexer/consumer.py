@@ -1,18 +1,20 @@
 import asyncio
 from abc import abstractmethod, ABC
-from typing import AsyncGenerator, List, AsyncIterator
+from typing import List
 
 from aiohttp import ClientError
 
 from indexer.conf import logger
 from indexer.connection import HTTPConnection
 from indexer.models.event import Event
+from indexer.writter import OutputWritter
 
 
 class Consumer(ABC):
     def __init__(self, conn: HTTPConnection) -> None:
         self.conn = conn
         self._run = True
+        self.output = OutputWritter()
 
     @abstractmethod
     async def connect(self) -> None:
@@ -32,7 +34,7 @@ class Consumer(ABC):
         raise NotImplementedError
 
     async def write_output(self, events: List[Event]) -> None:
-        raise NotImplementedError
+        await self.output.write(events)
 
     def should_run(self) -> bool:
         """
