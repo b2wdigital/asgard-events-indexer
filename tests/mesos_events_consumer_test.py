@@ -1,15 +1,18 @@
 import json
 
+from aiohttp.client import ClientTimeout
 from aiohttp.web import Request, StreamResponse
 from aioresponses import aioresponses
-from asynctest import skip
-from asynctest.mock import ANY
+from asynctest import mock
+from asynctest.mock import CoroutineMock, ANY
 from asyncworker import App, RouteTypes
 from asyncworker.testing import HttpClientContext
 from yarl import URL
 
+from indexer.conf import settings
 from indexer.connection import HTTPConnection
-from indexer.mesos.events.consumer import MesosEventConsumer
+from indexer.mesos.events import consumer as mesos_consumer_module
+from indexer.mesos.events.consumer import MesosEventConsumer, timeout_config
 from indexer.models.event import BackendInfoTypes, EventSourceSpec
 from tests.base import LOGGER_MOCK, BaseTestCase
 
@@ -211,3 +214,32 @@ class MesosConsumerTest(BaseTestCase):
             self.assertEqual(
                 events[0].dict(skip_defaults=True), asgard_event_expected_data
             )
+
+    async def test_creates_client_session_with_timeout_options(self):
+        with mock.patch.object(
+            mesos_consumer_module, "ClientSession"
+        ) as client_session_mock:
+            client_session_mock.return_value = CoroutineMock(
+                post=CoroutineMock()
+            )
+            consumer = MesosEventConsumer(
+                HTTPConnection(urls=settings.MESOS_MASTER_URLS)
+            )
+            await consumer.connect()
+            client_session_mock.assert_called_with(timeout=timeout_config)
+
+    async def test_use_next_mesos_urls_if_needed(self):
+        with aioresponses() as rsps:
+            rsps.post(
+                f"{settings.MESOS_MASTER_URLS[0]}/api/v1",
+                exception=ClientTimeout("timeout"),
+            )
+            rsps.post(
+                f"{settings.MESOS_MASTER_URLS[1]}/api/v1",
+                exception=ClientTimeout("timeout"),
+            )
+            consumer = MesosEventConsumer(
+                HTTPConnection(urls=settings.MESOS_MASTER_URLS)
+            )
+            await consumer.connect()
+        self.assertTrue(True)
