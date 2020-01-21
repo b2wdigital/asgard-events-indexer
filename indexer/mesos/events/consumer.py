@@ -1,7 +1,8 @@
 import json
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, Optional
 
 from aiohttp import ClientSession
+from aiohttp.client import ClientTimeout
 from pydantic import ValidationError
 
 from indexer.conf import logger
@@ -14,7 +15,8 @@ from indexer.mesos.models.converters.taskupdated import (
     MesosTaskUpdatedEventConverter,
 )
 from indexer.mesos.models.event import MesosEventTypes, MesosEvent
-from indexer.models.event import Event
+
+timeout_config = ClientTimeout(connect=2.0)
 
 
 class MesosEventConsumer(Consumer):
@@ -22,7 +24,7 @@ class MesosEventConsumer(Consumer):
         Consumer.__init__(self, conn)
 
     async def connect(self) -> None:
-        client = ClientSession()
+        client = ClientSession(timeout=timeout_config)
         for url in self.conn.urls:
             resp = await client.post(
                 f"{url}/api/v1", json={"type": "SUBSCRIBE"}
