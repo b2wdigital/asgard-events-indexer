@@ -7,7 +7,7 @@ from aiohttp import ClientError
 from indexer.conf import settings, logger
 from indexer.connection import HTTPConnection
 from indexer.models.event import Event
-from indexer.writter import OutputWritter
+from indexer.writter import OutputWritter, ElasticSearchOutputWritter
 
 
 class Consumer(ABC):
@@ -17,6 +17,8 @@ class Consumer(ABC):
         self.output: List[OutputWritter] = []
         if settings.OUTPUT_TO_STDOUT:
             self.output.append(OutputWritter())
+        if settings.ES_OUTPUT_URLS:
+            self.output.append(ElasticSearchOutputWritter())
 
     @abstractmethod
     async def connect(self) -> None:

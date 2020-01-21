@@ -9,7 +9,7 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
 
     MESOS_MASTER_URLS: List[str]
-    ES_OUTPUT_URLS: Optional[List[str]]
+    ES_OUTPUT_URLS: List[str]
     OUTPUT_TO_STDOUT: bool = False
 
     class Config:

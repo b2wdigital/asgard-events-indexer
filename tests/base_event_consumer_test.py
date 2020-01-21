@@ -1,20 +1,18 @@
 import os
 from asyncio import TimeoutError
-from importlib import reload
 from typing import List
 
 from aiohttp import ClientError
-from asynctest import skip, mock
+from asynctest import mock
 from asynctest.mock import CoroutineMock
 
 from indexer import consumer as consumer_module
 from indexer import writter as writter_module
-from indexer import conf as conf_module
 from indexer.conf import Settings
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
 from indexer.models.event import Event
-from indexer.writter import OutputWritter
+from indexer.writter import OutputWritter, ElasticSearchOutputWritter
 from tests.base import BaseTestCase, LOGGER_MOCK
 
 
@@ -129,19 +127,20 @@ class EventConsumerTest(BaseTestCase):
                 await consumer.write_output([event_mock])
                 logger_mock.info.assert_awaited_with({"status": "TASK_RUNNING"})
 
-    @skip("")
     async def test_consumer_instantiate_es_writter_if_env_url_set(self):
 
-        with mock.patch.dict(
-            os.environ,
-            INDEXER_ES_OUTPUT_URLS='["http://es.asgard.service:9200"]',
-        ):
+        import json
+
+        es_urls = json.dumps(["http://127.0.0.1:5050", "http://10.0.0.1:5050"])
+        with mock.patch.dict(os.environ, TEST_ES_OUTPUT_URLS=es_urls):
             settings_stub = Settings()
             with mock.patch.object(consumer_module, "settings", settings_stub):
                 consumer = StdOutConsumer(
                     HTTPConnection(urls=["http://127.0.0.1:5050"])
                 )
-                self.assertTrue(isinstance(consumer.output[0], OutputWritter))
+                self.assertTrue(
+                    isinstance(consumer.output[0], ElasticSearchOutputWritter)
+                )
 
     async def test_consumer_instantiate_stdout_writter_if_env_url_set(self):
 

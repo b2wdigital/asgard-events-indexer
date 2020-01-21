@@ -8,3 +8,8 @@ class OutputWritter:
     async def write(self, events: List[Event]) -> None:
         for e in events:
             await logger.info(e.dict())
+
+
+class ElasticSearchOutputWritter(OutputWritter):
+    async def write(self, events: List[Event]) -> None:
+        pass
