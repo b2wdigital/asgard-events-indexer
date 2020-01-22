@@ -73,7 +73,7 @@ class EventConsumerTest(BaseTestCase):
             "indexer.consumer.logger", LOGGER_MOCK
         ) as logger_mock, mock.patch.object(
             consumer, "connect", side_effect=ClientError("Error Connecting")
-        ) as connect_mock, mock.patch.object(
+        ), mock.patch.object(
             consumer, "should_run", side_effect=[True, False]
         ):
             await consumer.start()
@@ -95,9 +95,7 @@ class EventConsumerTest(BaseTestCase):
 
         with mock.patch(
             "indexer.consumer.logger", LOGGER_MOCK
-        ) as connect_mock, mock.patch.object(
-            consumer, "should_run", side_effect=[True, False]
-        ):
+        ), mock.patch.object(consumer, "should_run", side_effect=[True, False]):
             await consumer.start()
             self.assertEqual([10, 20], consumer.all_events)
 

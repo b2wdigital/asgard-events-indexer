@@ -1,8 +1,6 @@
 from enum import Enum, auto
 from typing import Tuple
 
-from indexer.models.event import BackendInfoTypes
-
 
 class SplitType(Enum):
     MARATHON = auto()

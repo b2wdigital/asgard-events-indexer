@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import List
 
 from aiologger.loggers.json import JsonLogger
 from pydantic import BaseSettings
