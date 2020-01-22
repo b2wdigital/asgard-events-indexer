@@ -57,7 +57,7 @@ class MesosEventConsumer(Consumer):
                 _data = b""
                 try:
                     yield MesosEvent(**mesos_event_data)
-                except ValidationError as v:
+                except ValidationError:
                     await logger.exception(
                         {
                             "event": "unsoported-mesos-event-received",

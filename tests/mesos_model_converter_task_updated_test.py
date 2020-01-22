@@ -1,6 +1,5 @@
 import json
 
-from asynctest import skip
 from asynctest.mock import ANY
 
 from indexer.mesos.models.converters.taskupdated import (

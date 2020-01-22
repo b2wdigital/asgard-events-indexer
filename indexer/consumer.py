@@ -1,18 +1,24 @@
 import asyncio
 from abc import abstractmethod, ABC
-from typing import AsyncGenerator, List, AsyncIterator
+from typing import List
 
 from aiohttp import ClientError
 
-from indexer.conf import logger
+from indexer.conf import settings, logger
 from indexer.connection import HTTPConnection
 from indexer.models.event import Event
+from indexer.writter import OutputWritter, ElasticSearchOutputWritter
 
 
 class Consumer(ABC):
     def __init__(self, conn: HTTPConnection) -> None:
         self.conn = conn
         self._run = True
+        self.output: List[OutputWritter] = []
+        if settings.OUTPUT_TO_STDOUT:
+            self.output.append(OutputWritter())
+        if settings.ES_OUTPUT_URLS:
+            self.output.append(ElasticSearchOutputWritter())
 
     @abstractmethod
     async def connect(self) -> None:
@@ -32,7 +38,8 @@ class Consumer(ABC):
         raise NotImplementedError
 
     async def write_output(self, events: List[Event]) -> None:
-        raise NotImplementedError
+        for out in self.output:
+            await out.write(events)
 
     def should_run(self) -> bool:
         """

@@ -2,7 +2,6 @@ import json
 
 from indexer.mesos.models.converters.spec import MesosTaskDataSpecConverter
 from indexer.mesos.models.event import MesosEvent
-from indexer.mesos.models.spec.taskdata import MesosTaskDataSpec
 from tests.base import BaseTestCase, FIXTURE_DIR
 
 

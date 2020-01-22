@@ -1,9 +1,6 @@
 from datetime import datetime, timezone
-from enum import Enum, auto
-from typing import Tuple
 from uuid import uuid4
 
-from indexer.mesos.models.converters.spec import MesosEventSourceSpecConverter
 from indexer.mesos.models.converters.util import (
     get_appname,
     get_task_namespace,

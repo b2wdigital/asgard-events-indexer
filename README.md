@@ -30,4 +30,7 @@ Teremos eventos de Agent adicionado e Agent removido.
 
 ## ENV Vars
 
- - `INDEXER_MESOS_MASTER_URLS`: Lista de endereços dos nós do cluster de mesos;
+ - `INDEXER_MESOS_MASTER_URLS`: Lista de endereços dos nós (master) do cluster de mesos;
+ - `OUTPUT_TO_STDOUT`: Loga os dasos brutos dos eventos no stdout. Default: False
+ - `ES_OUTPUT_URLS`: Lista de endereços de um cluster ElasticSearch para os enventos serem indexados
+    - O nome do índice será: `asgard-events-YYYY-MM-DD-HH`
