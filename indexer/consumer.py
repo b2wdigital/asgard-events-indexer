@@ -18,7 +18,11 @@ class Consumer(ABC):
         if settings.OUTPUT_TO_STDOUT:
             self.output.append(OutputWritter())
         if settings.ES_OUTPUT_URLS:
-            self.output.append(ElasticSearchOutputWritter())
+            self.output.append(
+                ElasticSearchOutputWritter(
+                    HTTPConnection(urls=settings.ES_OUTPUT_URLS)
+                )
+            )
 
     @abstractmethod
     async def connect(self) -> None:

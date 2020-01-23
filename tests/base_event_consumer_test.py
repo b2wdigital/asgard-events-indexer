@@ -139,6 +139,13 @@ class EventConsumerTest(BaseTestCase):
                 self.assertTrue(
                     isinstance(consumer.output[0], ElasticSearchOutputWritter)
                 )
+                self.assertTrue(
+                    [
+                        {"host": "127.0.0.1", "port": 5050},
+                        {"host": "10.0.0.1", "port": 5050},
+                    ],
+                    consumer.output[0].client.transport.hosts,
+                )
 
     async def test_consumer_instantiate_stdout_writter_if_env_url_set(self):
 
