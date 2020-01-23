@@ -30,7 +30,7 @@ class ElasticSearchOutputWritterTest(BaseTestCase):
             self.es_out_writter.client.transport.hosts,
         )
 
-    @freeze_time("2020-01-23T17:23:43.451742+00:00")
+    @freeze_time("2020-01-23T17:23:43-00:00")
     async def test_index_one_event_using_the_correct_index_name(self):
         mesos_task_updated_data = open(
             f"{FIXTURE_DIR}/mesos_state_running_event_data.json"
@@ -50,8 +50,10 @@ class ElasticSearchOutputWritterTest(BaseTestCase):
         self.assertEqual(1, result["hits"]["total"])
 
         doc_data = result["hits"]["hits"][0]["_source"]
-        asgard_saved_event = Event(**doc_data)
-        self.assertEqual(asgard_saved_event.dict(), asgard_event.dict())
+        self.assertEqual(
+            doc_data,
+            {**asgard_event.dict(), "@timestamp": "2020-01-23T17:23:43+00:00"},
+        )
 
     @freeze_time("2020-01-19T13:23:43.451742+00:00")
     async def test_generate_index_prefix(self):

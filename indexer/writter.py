@@ -20,9 +20,11 @@ class ElasticSearchOutputWritter(OutputWritter):
         self.client = Elasticsearch(hosts=conn.urls)
 
     async def write(self, events: List[Event]) -> None:
-        await self.client.index(
-            self._get_index_name(), "event", events[0].dict()
-        )
+        doc_body = {
+            **events[0].dict(),
+            "@timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        await self.client.index(self._get_index_name(), "event", doc_body)
 
     def _get_index_name(self):
         date_part = datetime.utcnow()
