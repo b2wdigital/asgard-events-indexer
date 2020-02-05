@@ -16,7 +16,7 @@ from indexer.mesos.models.converters.taskupdated import (
 )
 from indexer.mesos.models.event import MesosEventTypes, MesosEvent
 
-timeout_config = ClientTimeout(connect=2.0)
+timeout_config = ClientTimeout(connect=2.0, sock_read=90.0)
 
 
 class MesosEventConsumer(Consumer):
