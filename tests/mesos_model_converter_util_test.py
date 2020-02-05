@@ -31,13 +31,13 @@ class MesosEventModelConverterUtilTest(BaseTestCase):
             ),
         )
         self.assertEqual(
-            "heimdall-other-app",
+            "ct:1578492720011:0:heimdall-other-app",
             remove_task_namespace(
                 "ct:1578492720011:0:asgard-heimdall-other-app:"
             ),
         )
         self.assertEqual(
-            "heimdall",
+            "ct:1578492720011:0:heimdall",
             remove_task_namespace("ct:1578492720011:0:asgard-heimdall:"),
         )
 
