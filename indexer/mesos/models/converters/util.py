@@ -22,8 +22,10 @@ def split_task_id(task_id: str, split_type: SplitType) -> Tuple[str, str, str]:
     job_name_parts = job_name.split("-")
     namespace = job_name_parts[0]
     appname = "-".join(job_name_parts[1:])
-    # No caso do Chronos o task_name e appname são iguais
-    return namespace, appname, appname
+
+    task_name_without_ns = ":".join([prefix, time, try_count, appname])
+
+    return namespace, appname, task_name_without_ns
 
 
 def get_task_namespace(task_id: str) -> str:

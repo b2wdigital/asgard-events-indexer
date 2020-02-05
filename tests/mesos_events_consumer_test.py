@@ -187,7 +187,7 @@ class MesosConsumerTest(BaseTestCase):
             "appname": "heimdall",
             "namespace": "asgard",
             "backend_info": {"name": BackendInfoTypes.CHRONOS},
-            "task": {"id": "heimdall"},
+            "task": {"id": "ct:1578593280013:0:heimdall"},
             "agent": {"id": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
             "status": "TASK_FINISHED",
             "source": EventSourceSpec.SOURCE_EXECUTOR,
