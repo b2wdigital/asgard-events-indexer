@@ -10,7 +10,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name="asgard-events-indexer",
-    version="0.2.2",
+    version="0.3.0",
     description="Asgard Events Indexer",
     long_description="",
     url="https://github.com/B2W-BIT/asgard-events-indexer",

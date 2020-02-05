@@ -1,6 +1,6 @@
 FROM python:3.7-alpine
 
-#Version: 0.2.2
+#Version: 0.3.0
 
 WORKDIR /opt/app
 
