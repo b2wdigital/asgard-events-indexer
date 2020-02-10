@@ -10,8 +10,10 @@ from indexer.models.event import BackendInfoTypes, EventSourceSpec, TaskStatus
 from tests.base import FIXTURE_DIR, BaseTestCase
 
 mesos_state_finished_event_data = {
+    "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001"},
     "state": "TASK_FINISHED",
     "status": {
+        "executor_id": {"value": "ct:1581355920078:0:asgard-heimdall:"},
         "agent_id": {"value": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
         "message": "Container exited with status 0",
         "source": "SOURCE_EXECUTOR",
@@ -23,8 +25,10 @@ mesos_state_finished_event_data = {
 
 
 mesos_state_failed_event_data = {
+    "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001"},
     "state": "TASK_FAILED",
     "status": {
+        "executor_id": {"value": "ct:1581355920078:0:asgard-heimdall:"},
         "agent_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-S28"},
         "message": "Failed to launch container: Failed to run 'docker -H unix:///var/run/docker.sock pull debian7': exited with status 1; stderr='Error response from daemon: pull access denied for debian7, repository does not exist or may require 'docker login'\n'",
         "reason": "REASON_CONTAINER_LAUNCH_FAILED",
