@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from indexer.conf import logger
 from indexer.connection import HTTPConnection
-from indexer.mesos.models.spec import AgentIdSpec
+from indexer.mesos.models.spec import AgentIdSpec, TaskIdSpec
 
 
 class AgentNotFoundException(Exception):
@@ -24,6 +24,24 @@ class SlaveInfo(BaseModel):
 
 class SlaveAPIEndPointResponse(BaseModel):
     slaves: Optional[List[SlaveInfo]]
+
+
+class CompletedExecutorSpec(BaseModel):
+    id: str
+    directory: str
+
+
+class FrameworksInfoSpec(BaseModel):
+    completed_executors: List[CompletedExecutorSpec]
+
+
+class StateAPIEndPointResponse(BaseModel):
+    frameworks: List[FrameworksInfoSpec]
+
+
+class CompletedTaskInfo(BaseModel):
+    id: str
+    directory: str
 
 
 class MesosClient:
@@ -61,3 +79,30 @@ class MesosClient:
             agent_info = slave_api_response.slaves[0]
             return f"http://{agent_info.hostname}:{agent_info.port}"
         raise AgentNotFoundException(f"Agent not found: id={agent_id.value}")
+
+    async def get_task_info(
+        self, agent_addr: str, task_id: TaskIdSpec
+    ) -> Optional[CompletedTaskInfo]:
+        """
+        Dado um slave e uma task, retorna o info que representa essa task.
+        Esse task_id é o task_id bruto incluindo o namespace, se existir.
+
+        Retorna um objeto que contém a pasta onde estão o stdout/stderr dessa task.
+        Esse path pode ser passado diretamente para a API do Agent (/files/read?path=<path>)
+        """
+        state = await self.http.get(f"{agent_addr}/state")
+        agent_state = StateAPIEndPointResponse(**await state.json())
+
+        completed_task_info = self._find_task_in_state(agent_state, task_id)
+        if completed_task_info:
+            return CompletedTaskInfo(**completed_task_info.dict())
+        return None
+
+    def _find_task_in_state(
+        self, agent_state: StateAPIEndPointResponse, task_id: TaskIdSpec
+    ) -> Optional[CompletedExecutorSpec]:
+        for fwk in agent_state.frameworks:
+            for completed_executor in fwk.completed_executors:
+                if completed_executor.id == task_id.value:
+                    return completed_executor
+        return None

@@ -1,3 +1,4 @@
+import json
 from unittest import skip
 
 from aiohttp.client import ClientError, ClientSession
@@ -12,7 +13,8 @@ from indexer.mesos.client import (
     AgentNotFoundException,
     NoMoreMesosServersException,
 )
-from indexer.mesos.models.spec import AgentIdSpec
+from indexer.mesos.models.spec import TaskIdSpec, AgentIdSpec
+from tests.base import FIXTURE_DIR
 
 mesos_api_response_data = {
     "recovered_slaves": [],
@@ -35,6 +37,11 @@ class MesosClientTest(TestCase):
         self.agent_id = "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"
         conn = HTTPConnection(urls=settings.MESOS_MASTER_URLS)
         self.mesos_client = MesosClient(ClientSession(), conn)
+
+        self.agent_state_dict = json.loads(
+            open(f"{FIXTURE_DIR}/mesos_slave_state.json").read()
+        )
+        self.agent_addr = "http://10.0.0.1:5051"
 
     async def test_get_slave_address_slave_exist(self):
         with aioresponses() as rsps:
@@ -93,3 +100,46 @@ class MesosClientTest(TestCase):
                 await self.mesos_client.get_agent_address(
                     AgentIdSpec(value=self.agent_id)
                 )
+
+    async def test_task_info_active_framework_completed_executors(self):
+        task_id = TaskIdSpec(value="ct:1581360840007:0:asgard-my-app:")
+        expected_directory_value = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360840007:0:asgard-heimdall:/runs/2bca2a9b-2eea-48a9-9b18-b69b1c5118f7"
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/state",
+                status=200,
+                payload=self.agent_state_dict,
+            )
+            task_info = await self.mesos_client.get_task_info(
+                self.agent_addr, task_id
+            )
+            self.assertEqual(expected_directory_value, task_info.directory)
+            self.assertEqual(task_id.value, task_info.id)
+
+    async def test_task_info_completed_framework_completed_executors(self):
+        task_id = TaskIdSpec(value="ct:1581360780082:0:asgard-heimdall-hml:")
+        expected_directory_value = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360780082:0:asgard-heimdall:/runs/4d70dbf3-8131-402b-a026-a2d8e7f7ae7e"
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/state",
+                status=200,
+                payload=self.agent_state_dict,
+            )
+            task_info = await self.mesos_client.get_task_info(
+                self.agent_addr, task_id
+            )
+            self.assertEqual(expected_directory_value, task_info.directory)
+            self.assertEqual(task_id.value, task_info.id)
+
+    async def test_task_info_task_not_found(self):
+        task_id = TaskIdSpec(value="not-found-task-id")
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/state",
+                status=200,
+                payload=self.agent_state_dict,
+            )
+            task_info = await self.mesos_client.get_task_info(
+                self.agent_addr, task_id
+            )
+            self.assertIsNone(task_info)

@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator, Optional
+from typing import List, AsyncGenerator, Optional
 
 from aiohttp import ClientSession
 from aiohttp.client import ClientTimeout
@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from indexer.conf import logger
 from indexer.connection import HTTPConnection
 from indexer.consumer import Consumer
+from indexer.mesos.client import MesosClient
 from indexer.mesos.models.converters.taskadded import (
     MesosTaskAddedEventConverter,
 )
@@ -15,18 +16,24 @@ from indexer.mesos.models.converters.taskupdated import (
     MesosTaskUpdatedEventConverter,
 )
 from indexer.mesos.models.event import MesosEventTypes, MesosEvent
+from indexer.models.event import BackendInfoTypes
 
 timeout_config = ClientTimeout(connect=2.0, sock_read=90.0)
 
 
 class MesosEventConsumer(Consumer):
+
+    http_client: ClientSession
+    mesos_client: MesosClient
+
     def __init__(self, conn: HTTPConnection) -> None:
         Consumer.__init__(self, conn)
 
     async def connect(self) -> None:
-        client = ClientSession(timeout=timeout_config)
+        self.http_client = ClientSession(timeout=timeout_config)
+        self.mesos_client = MesosClient(self.http_client, self.conn)
         for url in self.conn.urls:
-            resp = await client.post(
+            resp = await self.http_client.post(
                 f"{url}/api/v1", json={"type": "SUBSCRIBE"}
             )
             self.response = resp
@@ -56,6 +63,13 @@ class MesosEventConsumer(Consumer):
                 mesos_event_data = json.loads(data_bytes)
                 _data = b""
                 try:
+
+                    if (
+                        mesos_event_data["type"] == "TASK_UPDATED"
+                        and mesos_event_data["task_updated"]["status"]["state"]
+                        == "TASK_FINISHED"
+                    ):
+                        await logger.info(mesos_event_data)
                     yield MesosEvent(**mesos_event_data)
                 except ValidationError:
                     await logger.exception(
@@ -64,3 +78,20 @@ class MesosEventConsumer(Consumer):
                             "event-type": mesos_event_data.get("type"),
                         }
                     )
+
+
+# async def pre_process_event(self, events: List[Event]) -> None:
+#     # Call mesos API do get slave IP (using slave id)
+#     # Se o slave não existir, lançamos uma exception e abortamos
+#     # Call slave API do get Task info
+#     # Download Stdout/Stderr
+#     # Save to Google storage
+#     # Update Document (?) Temos o ID do documento aqui?
+
+#     # Abordagem
+#     # Pega do Event o executor_id (bruto, do jeito que o Mesos entregou)
+#     # Usa esse executor_id para iterar no state do slave.
+#     # Dentro do executor_info (no /state) tem o campo `directory`
+#     # Com esse campo directory, podemos voltar no slave e ir em /files/read?path=<directory>
+# agent_addr = mesos_client.get_
+#     pass
