@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 from aiohttp.client import ClientSession, ClientError
 from pydantic import BaseModel
 
-from indexer.conf import logger
+from indexer.conf import settings, logger
 from indexer.connection import HTTPConnection
 from indexer.mesos.models.spec import AgentIdSpec, TaskIdSpec
 
@@ -42,6 +42,17 @@ class StateAPIEndPointResponse(BaseModel):
 class CompletedTaskInfo(BaseModel):
     id: str
     directory: str
+
+
+class TaskOutputData(BaseModel):
+    task: TaskIdSpec
+    stdout: Optional[str]
+    stderr: Optional[str]
+
+
+class TaskFileListItem(BaseModel):
+    size: int
+    path: str
 
 
 class MesosClient:
@@ -106,3 +117,51 @@ class MesosClient:
                 if completed_executor.id == task_id.value:
                     return completed_executor
         return None
+
+    async def get_task_output_data(
+        self, agent_addr: str, task_info: CompletedTaskInfo
+    ) -> TaskOutputData:
+
+        stdout_data = await self._get_task_file_content(
+            agent_addr, task_info, "stdout"
+        )
+
+        stderr_data = await self._get_task_file_content(
+            agent_addr, task_info, "stderr"
+        )
+        return TaskOutputData(
+            task=TaskIdSpec(value=task_info.id),
+            stdout=stdout_data,
+            stderr=stderr_data,
+        )
+
+    async def _get_task_file_size(
+        self, agent_addr: str, task_info: CompletedTaskInfo, file_name: str
+    ) -> int:
+        resp = await self.http.get(
+            f"{agent_addr}/files/browse?path={task_info.directory}"
+        )
+        task_files_data = await resp.json()
+        for task_item in task_files_data:
+            if task_item["path"].endswith(file_name):
+                return task_item["size"]
+
+        return 0
+
+    async def _get_task_file_content(
+        self, agent_addr: str, task_info: CompletedTaskInfo, file_name: str
+    ):
+        file_size = await self._get_task_file_size(
+            agent_addr, task_info, file_name
+        )
+
+        offset = max(0, file_size - settings.TASK_FILE_CONTENT_LENGTH)
+        length = settings.TASK_FILE_CONTENT_LENGTH
+
+        file_path = f"{task_info.directory}/{file_name}"
+
+        resp = await self.http.get(
+            f"{agent_addr}/files/read?path={file_path}&length={length}&offset={offset}"
+        )
+        data = await resp.json()
+        return data["data"]

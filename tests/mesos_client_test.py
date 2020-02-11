@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from indexer.conf import settings
 from indexer.connection import HTTPConnection
 from indexer.mesos.client import (
+    CompletedTaskInfo,
     MesosClient,
     AgentNotFoundException,
     NoMoreMesosServersException,
@@ -28,6 +29,30 @@ mesos_api_response_data = {
 }
 
 mesos_api_response_empty_data = {"recovered_slaves": [], "slaves": []}
+
+
+task_file_list_less_than_4k_size = [
+    {
+        "path": "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000/executors/asgard_monitoring_prometheus.32f98443-061e-11ea-bbc8-0242e96b0c6b/runs/d341507d-1ca9-4133-9d78-fe05c7524333/stderr",
+        "size": 520,
+    },
+    {
+        "path": "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000/executors/asgard_monitoring_prometheus.32f98443-061e-11ea-bbc8-0242e96b0c6b/runs/d341507d-1ca9-4133-9d78-fe05c7524333/stdout",
+        "size": 3287,
+    },
+]
+
+
+task_file_list_more_than_4k_size = [
+    {
+        "path": "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000/executors/asgard_monitoring_prometheus.32f98443-061e-11ea-bbc8-0242e96b0c6b/runs/d341507d-1ca9-4133-9d78-fe05c7524333/stderr",
+        "size": 8192,
+    },
+    {
+        "path": "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0000/executors/asgard_monitoring_prometheus.32f98443-061e-11ea-bbc8-0242e96b0c6b/runs/d341507d-1ca9-4133-9d78-fe05c7524333/stdout",
+        "size": 12798,
+    },
+]
 
 
 class MesosClientTest(TestCase):
@@ -143,3 +168,109 @@ class MesosClientTest(TestCase):
                 self.agent_addr, task_id
             )
             self.assertIsNone(task_info)
+
+    async def test_get_task_file_size_less_than_4k(self):
+        task_id = "task-id"
+        directory = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360780082:0:asgard-heimdall:/runs/4d70dbf3-8131-402b-a026-a2d8e7f7ae7e"
+        task_info = CompletedTaskInfo(id=task_id, directory=directory)
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=task_file_list_less_than_4k_size,
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=task_file_list_less_than_4k_size,
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stdout&length=4096&offset=0",
+                status=200,
+                payload={"data": "stdout-output from task", "offset": 0},
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stderr&length=4096&offset=0",
+                status=200,
+                payload={"data": "stderr-output from task", "offset": 0},
+            )
+
+            task_output_data = await self.mesos_client.get_task_output_data(
+                self.agent_addr, task_info
+            )
+
+            self.assertEqual("stdout-output from task", task_output_data.stdout)
+            self.assertEqual("stderr-output from task", task_output_data.stderr)
+
+    async def test_get_task_stdout_file_size_more_than_4k(self):
+        task_id = "task-id"
+        directory = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360780082:0:asgard-heimdall:/runs/4d70dbf3-8131-402b-a026-a2d8e7f7ae7e"
+        task_info = CompletedTaskInfo(id=task_id, directory=directory)
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=task_file_list_more_than_4k_size,
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=task_file_list_more_than_4k_size,
+            )
+
+            stdout_offset = 12798 - settings.TASK_FILE_CONTENT_LENGTH
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stdout&length=4096&offset={stdout_offset}",
+                status=200,
+                payload={
+                    "data": "stderr-output from task more than 4k file",
+                    "offset": 0,
+                },
+            )
+
+            stderr_offset = 8192 - settings.TASK_FILE_CONTENT_LENGTH
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stderr&length=4096&offset={stderr_offset}",
+                status=200,
+                payload={
+                    "data": "stderr-output from task more than 4k file",
+                    "offset": 0,
+                },
+            )
+            task_output_data = await self.mesos_client.get_task_output_data(
+                self.agent_addr, task_info
+            )
+
+            self.assertEqual(
+                "stderr-output from task more than 4k file",
+                task_output_data.stdout,
+            )
+
+            self.assertEqual(
+                "stderr-output from task more than 4k file",
+                task_output_data.stderr,
+            )
+
+    async def test_get_task_file_not_found(self):
+        """
+        O segundo request é parte do assert. A conferência é o valor do offset.
+        """
+        task_id = "task-id"
+        directory = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360780082:0:asgard-heimdall:/runs/4d70dbf3-8131-402b-a026-a2d8e7f7ae7e"
+        task_info = CompletedTaskInfo(id=task_id, directory=directory)
+        with aioresponses() as rsps:
+            rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=[{"path": f"{directory}/other-file", "size": 42}],
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stdout&length=4096&offset=0",
+                status=200,
+                payload={"data": "stdout-output from task", "offset": 0},
+            )
+            task_output_data = await self.mesos_client.get_task_output_data(
+                self.agent_addr, task_info
+            )
+
+            self.assertEqual("stdout-output from task", task_output_data.stdout)
