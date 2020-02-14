@@ -1,10 +1,8 @@
 import json
-from unittest import skip
 
 from aiohttp.client import ClientError, ClientSession
 from aioresponses import aioresponses
 from asynctest import TestCase
-from pydantic import ValidationError
 
 from indexer.conf import settings
 from indexer.connection import HTTPConnection
@@ -265,9 +263,19 @@ class MesosClientTest(TestCase):
                 payload=[{"path": f"{directory}/other-file", "size": 42}],
             )
             rsps.get(
+                f"{self.agent_addr}/files/browse?path={directory}",
+                status=200,
+                payload=[{"path": f"{directory}/other-file", "size": 42}],
+            )
+            rsps.get(
                 f"{self.agent_addr}/files/read?path={directory}/stdout&length=4096&offset=0",
                 status=200,
                 payload={"data": "stdout-output from task", "offset": 0},
+            )
+            rsps.get(
+                f"{self.agent_addr}/files/read?path={directory}/stderr&length=4096&offset=0",
+                status=200,
+                payload={"data": "stderr-output from task", "offset": 0},
             )
             task_output_data = await self.mesos_client.get_task_output_data(
                 self.agent_addr, task_info

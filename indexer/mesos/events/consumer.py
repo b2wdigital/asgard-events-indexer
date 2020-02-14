@@ -16,7 +16,9 @@ from indexer.mesos.models.converters.taskupdated import (
     MesosTaskUpdatedEventConverter,
 )
 from indexer.mesos.models.event import MesosEventTypes, MesosEvent
-from indexer.models.event import BackendInfoTypes
+from indexer.mesos.models.spec import AgentIdSpec, TaskIdSpec
+from indexer.models.event import Event, BackendInfoTypes
+from indexer.models.util import BackendInfoTypes, get_backend_info
 
 timeout_config = ClientTimeout(connect=2.0, sock_read=90.0)
 
@@ -79,19 +81,30 @@ class MesosEventConsumer(Consumer):
                         }
                     )
 
+    def _get_task_id_with_namespace(self, event):
+        task_id_with_namespace = ""
+        if get_backend_info(event.task.id) == BackendInfoTypes.CHRONOS:
+            prefix, time, try_, appname = event.task.id.split(":")
+            task_id_with_namespace = ":".join(
+                [prefix, time, try_, f"{event.namespace}-{appname}", ""]
+            )
+        elif get_backend_info(event.task.id) == BackendInfoTypes.MARATHON:
+            task_id_with_namespace = f"{event.namespace}_{event.task.id}"
 
-# async def pre_process_event(self, events: List[Event]) -> None:
-#     # Call mesos API do get slave IP (using slave id)
-#     # Se o slave não existir, lançamos uma exception e abortamos
-#     # Call slave API do get Task info
-#     # Download Stdout/Stderr
-#     # Save to Google storage
-#     # Update Document (?) Temos o ID do documento aqui?
+        return task_id_with_namespace
 
-#     # Abordagem
-#     # Pega do Event o executor_id (bruto, do jeito que o Mesos entregou)
-#     # Usa esse executor_id para iterar no state do slave.
-#     # Dentro do executor_info (no /state) tem o campo `directory`
-#     # Com esse campo directory, podemos voltar no slave e ir em /files/read?path=<directory>
-# agent_addr = mesos_client.get_
-#     pass
+    async def pre_process_event(self, events: List[Event]) -> None:
+        for event in events:
+            task_id = self._get_task_id_with_namespace(event)
+            agent_addr = await self.mesos_client.get_agent_address(
+                AgentIdSpec(value=event.agent.id)
+            )
+            task_info = await self.mesos_client.get_task_info(
+                agent_addr, TaskIdSpec(value=task_id)
+            )
+            if task_info:
+                output_data = await self.mesos_client.get_task_output_data(
+                    agent_addr, task_info
+                )
+                event.task.stdout = output_data.stdout
+                event.task.stderr = output_data.stderr
