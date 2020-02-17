@@ -136,12 +136,13 @@ class MesosClientTest(TestCase):
             task_info = await self.mesos_client.get_task_info(
                 self.agent_addr, task_id
             )
+            self.assertIsNotNone(task_info)
             self.assertEqual(expected_directory_value, task_info.directory)
             self.assertEqual(task_id.value, task_info.id)
 
     async def test_task_info_completed_framework_completed_executors(self):
-        task_id = TaskIdSpec(value="ct:1581360780082:0:asgard-heimdall-hml:")
-        expected_directory_value = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360780082:0:asgard-heimdall:/runs/4d70dbf3-8131-402b-a026-a2d8e7f7ae7e"
+        task_id = TaskIdSpec(value="asgard_webapp_apis_billing.2bca2a9b")
+        expected_directory_value = "/tmp/mesos/slaves/79ad3a13-b567-4273-ac8c-30378d35a439-S6563/frameworks/4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001/executors/ct:1581360900080:0:asgard-heimdall:/runs/238657cd-0f2b-47a7-a48d-ffcf453be31d"
         with aioresponses() as rsps:
             rsps.get(
                 f"{self.agent_addr}/state",
@@ -151,6 +152,7 @@ class MesosClientTest(TestCase):
             task_info = await self.mesos_client.get_task_info(
                 self.agent_addr, task_id
             )
+            self.assertIsNotNone(task_info)
             self.assertEqual(expected_directory_value, task_info.directory)
             self.assertEqual(task_id.value, task_info.id)
 

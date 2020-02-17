@@ -65,13 +65,6 @@ class MesosEventConsumer(Consumer):
                 mesos_event_data = json.loads(data_bytes)
                 _data = b""
                 try:
-
-                    if (
-                        mesos_event_data["type"] == "TASK_UPDATED"
-                        and mesos_event_data["task_updated"]["status"]["state"]
-                        == "TASK_FINISHED"
-                    ):
-                        await logger.info(mesos_event_data)
                     yield MesosEvent(**mesos_event_data)
                 except ValidationError:
                     await logger.exception(

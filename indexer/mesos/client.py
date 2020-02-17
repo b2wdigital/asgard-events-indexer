@@ -37,6 +37,7 @@ class FrameworksInfoSpec(BaseModel):
 
 class StateAPIEndPointResponse(BaseModel):
     frameworks: List[FrameworksInfoSpec]
+    completed_frameworks: List[FrameworksInfoSpec]
 
 
 class CompletedTaskInfo(BaseModel):
@@ -112,7 +113,7 @@ class MesosClient:
     def _find_task_in_state(
         self, agent_state: StateAPIEndPointResponse, task_id: TaskIdSpec
     ) -> Optional[CompletedExecutorSpec]:
-        for fwk in agent_state.frameworks:
+        for fwk in agent_state.frameworks + agent_state.completed_frameworks:
             for completed_executor in fwk.completed_executors:
                 if completed_executor.id == task_id.value:
                     return completed_executor
