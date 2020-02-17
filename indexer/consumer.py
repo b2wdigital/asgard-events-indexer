@@ -62,6 +62,7 @@ class Consumer(ABC):
                 await logger.debug({"event": "Connect"})
                 await self.connect()
                 async for event in self.events():
+                    await asyncio.sleep(1)
                     await self.pre_process_event([event])
                     await self.write_output([event])
             except (ClientError, asyncio.TimeoutError) as e:
