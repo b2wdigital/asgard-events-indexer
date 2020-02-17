@@ -5,6 +5,7 @@ from tests.base import BaseTestCase, FIXTURE_DIR
 
 mesos_state_finished_event_data = {
     "task_updated": {
+        "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001"},
         "state": "TASK_FINISHED",
         "status": {
             "agent_id": {"value": "79ad3a13-b567-4273-ac8c-30378d35a439-S6563"},
@@ -13,6 +14,7 @@ mesos_state_finished_event_data = {
             "state": "TASK_FINISHED",
             "task_id": {"value": "ct:1578593280013:0:asgard-heimdall:"},
             "timestamp": 1_578_593_296,
+            "executor_id": {"value": "ct:1581355920078:0:asgard-heimdall:"},
         },
     },
     "type": "TASK_UPDATED",
@@ -21,8 +23,10 @@ mesos_state_finished_event_data = {
 
 mesos_state_failed_event_data = {
     "task_updated": {
+        "framework_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001"},
         "state": "TASK_FAILED",
         "status": {
+            "executor_id": {"value": "ct:1581355920078:0:asgard-heimdall:"},
             "agent_id": {"value": "4783cf15-4fb1-4c75-90fe-44eeec5258a7-S28"},
             "message": "Container exited with status 137",
             "source": "SOURCE_EXECUTOR",
@@ -147,4 +151,16 @@ class MesosEventModelTest(BaseTestCase):
                 "hollowman.appname": "/asgard/sleep",
             },
             task_details.config.Labels,
+        )
+
+        # FrameworkID
+        self.assertEqual(
+            "4783cf15-4fb1-4c75-90fe-44eeec5258a7-0001",
+            mesos_event.task_updated.framework_id.value,
+        )
+
+        # ExecutorID
+        self.assertEqual(
+            "ct:1581355920078:0:asgard-heimdall:",
+            mesos_event.task_updated.status.executor_id.value,
         )

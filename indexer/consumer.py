@@ -53,12 +53,17 @@ class Consumer(ABC):
         logger.debug({"event": "should-run", "value": self._run})
         return self._run
 
+    async def pre_process_event(self, events: List[Event]) -> None:
+        pass
+
     async def start(self):
         while self.should_run():
             try:
                 await logger.debug({"event": "Connect"})
                 await self.connect()
                 async for event in self.events():
+                    await asyncio.sleep(1)
+                    await self.pre_process_event([event])
                     await self.write_output([event])
             except (ClientError, asyncio.TimeoutError) as e:
                 await logger.exception(

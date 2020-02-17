@@ -8,6 +8,14 @@ from pydantic import BaseModel
 from indexer.mesos.models.spec.taskdata import MesosTaskDataSpec
 
 
+class ExecutorIdSpec(BaseModel):
+    value: str
+
+
+class FrameworkIdSpec(BaseModel):
+    value: str
+
+
 class AgentIdSpec(BaseModel):
     value: str
 
@@ -52,6 +60,7 @@ class MesosEventSourceSpec(str, Enum):
 
 
 class TaskStatusSpec(BaseModel):
+    executor_id: ExecutorIdSpec
     agent_id: AgentIdSpec
     message: Optional[str]
     reason: Optional[str]

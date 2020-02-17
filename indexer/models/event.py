@@ -20,7 +20,14 @@ class BackendInfoSpec(BaseModel):
 
 
 class TaskInfoSpec(BaseModel):
+    """
+    stdout/stderr guardam o final do conteúdo das respectivas saídas
+    stdout/stderr (_link) guardam a URL onde esses conteúdos completos estão.
+    """
+
     id: str
+    stdout: Optional[str]
+    stderr: Optional[str]
 
 
 class AgentInfoSpec(BaseModel):

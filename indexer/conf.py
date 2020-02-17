@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     MESOS_MASTER_URLS: List[str]
     ES_OUTPUT_URLS: List[str]
     OUTPUT_TO_STDOUT: bool = False
+    TASK_FILE_CONTENT_LENGTH: int = 4096
 
     class Config:
         env_prefix = os.getenv("ENV", "INDEXER").upper() + "_"
